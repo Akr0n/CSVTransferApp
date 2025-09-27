@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\CSVTransferApp.Core\CSVTransferApp.Core.csproj" />
+    <ProjectReference Include="..\CSVTransferApp.Data\CSVTransferApp.Data.csproj" />
+    <ProjectReference Include="..\CSVTransferApp.Services\CSVTransferApp.Services.csproj" />
+    <ProjectReference Include="..\CSVTransferApp.Infrastructure\CSVTransferApp.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>
