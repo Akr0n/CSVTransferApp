@@ -48,11 +48,17 @@ jobs:
         run: dotnet build CSVTransferApp.sln --configuration Release --no-restore
 
       - name: Run unit tests
-        run: dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults
+        run: |
+          if (Test-Path "tests") {
+            dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults
+          } else {
+            Write-Output "⚠️ No test projects found, skipping tests"
+          }
+        continue-on-error: false
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && hashFiles('TestResults/*.trx') != ''
         with:
           name: test-results
           path: TestResults/*.trx

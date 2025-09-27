@@ -1,14 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <ItemGroup>
-    <ProjectReference Include="..\CSVTransferApp.Core\CSVTransferApp.Core.csproj" />
-    <ProjectReference Include="..\CSVTransferApp.Data\CSVTransferApp.Data.csproj" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12.0</LangVersion>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SSH.NET" Version="2023.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../CSVTransferApp.Core/CSVTransferApp.Core.csproj" />
+    <ProjectReference Include="../CSVTransferApp.Data/CSVTransferApp.Data.csproj" />
+  </ItemGroup>
 </Project>

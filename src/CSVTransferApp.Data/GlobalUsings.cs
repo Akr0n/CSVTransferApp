@@ -1,0 +1,9 @@
+global using System.Data;
+global using System.Data.Common;
+global using Microsoft.Data.SqlClient;
+global using Oracle.ManagedDataAccess.Client;
+global using Npgsql;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.Logging;
+global using CSVTransferApp.Core.Interfaces;
+global using CSVTransferApp.Core.Models;
