@@ -1,0 +1,71 @@
+{
+  "TableName": "products",
+  "Description": "Product catalog export with localized headers",
+  "LastModified": "2025-09-27T14:00:00Z",
+  "ColumnMappings": {
+    "product_id": "Product ID",
+    "prod_id": "Product ID",
+    "id": "Product ID",
+    "product_name": "Product Name",
+    "name": "Product Name",
+    "title": "Product Name",
+    "supplier_id": "Supplier ID",
+    "vendor_id": "Supplier ID",
+    "category_id": "Category ID",
+    "cat_id": "Category ID",
+    "category_name": "Category",
+    "cat_name": "Category",
+    "quantity_per_unit": "Package Size",
+    "package_size": "Package Size",
+    "unit_price": "Unit Price",
+    "price": "Unit Price",
+    "cost": "Unit Price",
+    "units_in_stock": "Stock Quantity",
+    "stock": "Stock Quantity",
+    "inventory": "Stock Quantity",
+    "units_on_order": "On Order",
+    "ordered": "On Order",
+    "reorder_level": "Reorder Level",
+    "min_stock": "Reorder Level",
+    "discontinued": "Discontinued",
+    "is_discontinued": "Discontinued",
+    "active": "Active",
+    "is_active": "Active",
+    "created_date": "Created Date",
+    "date_created": "Created Date",
+    "modified_date": "Modified Date",
+    "date_modified": "Modified Date"
+  },
+  "DataTypes": {
+    "Product ID": "Integer",
+    "Product Name": "Text",
+    "Supplier ID": "Integer",
+    "Category ID": "Integer",
+    "Category": "Text",
+    "Package Size": "Text",
+    "Unit Price": "Currency",
+    "Stock Quantity": "Integer",
+    "On Order": "Integer",
+    "Reorder Level": "Integer",
+    "Discontinued": "Boolean",
+    "Active": "Boolean",
+    "Created Date": "DateTime",
+    "Modified Date": "DateTime"
+  },
+  "FormatRules": {
+    "Unit Price": {
+      "Format": "Currency",
+      "CurrencySymbol": "$",
+      "DecimalPlaces": 2
+    },
+    "Stock Quantity": {
+      "Format": "Integer",
+      "ShowZeroAs": "Out of Stock"
+    },
+    "Discontinued": {
+      "Format": "Boolean",
+      "TrueValue": "Yes",
+      "FalseValue": "No"
+    }
+  }
+}

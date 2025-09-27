@@ -1,0 +1,77 @@
+name: PROD - Build & Release .NET CSV Transfer Application
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+  pull-requests: read
+  actions: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            runtime: linux-x64
+            artifact: linux-x64
+          - os: windows-latest
+            runtime: win-x64
+            artifact: win-x64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+
+      - name: Restore dependencies
+        run: dotnet restore CSVTransferApp.sln
+
+      - name: Build solution
+        run: dotnet build CSVTransferApp.sln --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal
+
+      - name: Publish application
+        run: |
+          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj \
+            --configuration Release \
+            --runtime ${{ matrix.runtime }} \
+            --self-contained true \
+            --output ./publish/${{ matrix.artifact }} \
+            /p:PublishSingleFile=true \
+            /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Create release package
+        run: |
+          cd publish/${{ matrix.artifact }}
+          if [ "${{ matrix.runtime }}" = "win-x64" ]; then
+            zip -r ../../CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.zip .
+          else
+            tar -czf ../../CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.tar.gz .
+          fi
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: csvtransferapp-${{ matrix.artifact }}
+          path: CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.*

@@ -1,0 +1,148 @@
+{
+  "LoggingConfiguration": {
+    "DefaultLevel": "Information",
+    "Providers": {
+      "Console": {
+        "Enabled": true,
+        "LogLevel": {
+          "Default": "Information",
+          "Microsoft": "Warning",
+          "System": "Warning",
+          "CSVTransferApp": "Debug"
+        },
+        "Format": {
+          "IncludeScopes": false,
+          "TimestampFormat": "yyyy-MM-dd HH:mm:ss.fff",
+          "UseUtc": true,
+          "SingleLine": false
+        },
+        "Colors": {
+          "Trace": "DarkGray",
+          "Debug": "Gray",
+          "Information": "White",
+          "Warning": "Yellow",
+          "Error": "Red",
+          "Critical": "Magenta"
+        }
+      },
+      "File": {
+        "Enabled": true,
+        "LogLevel": {
+          "Default": "Information",
+          "Microsoft": "Warning",
+          "System": "Warning",
+          "CSVTransferApp": "Trace"
+        },
+        "Path": "./logs/csvtransferapp-.log",
+        "RollingInterval": "Day",
+        "RetainedFileCountLimit": 30,
+        "FileSizeLimitBytes": 104857600,
+        "RollOnFileSizeLimit": true,
+        "Format": {
+          "Template": "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}",
+          "IncludeScopes": true
+        }
+      },
+      "EventLog": {
+        "Enabled": false,
+        "LogLevel": {
+          "Default": "Warning"
+        },
+        "SourceName": "CSV Transfer Application",
+        "LogName": "Application"
+      }
+    },
+    "Categories": {
+      "CSVTransferApp.Data": {
+        "LogLevel": "Debug",
+        "Providers": {
+          "File": {
+            "Path": "./logs/database-.log"
+          }
+        }
+      },
+      "CSVTransferApp.Services.SftpService": {
+        "LogLevel": "Information",
+        "Providers": {
+          "File": {
+            "Path": "./logs/sftp-.log"
+          }
+        }
+      },
+      "CSVTransferApp.Services.CsvProcessingService": {
+        "LogLevel": "Debug",
+        "Providers": {
+          "File": {
+            "Path": "./logs/processing-.log"
+          }
+        }
+      }
+    },
+    "Enrichers": {
+      "MachineName": true,
+      "ProcessId": true,
+      "ThreadId": true,
+      "Environment": true
+    }
+  },
+  "CustomLoggers": {
+    "TransferJobLogger": {
+      "Path": "./logs/transfers/transfer-{TableName}-{Date}.log",
+      "LogLevel": "Information",
+      "Format": {
+        "Template": "[{Timestamp:HH:mm:ss}] {Level:u3}: {Message:lj}{NewLine}",
+        "IncludeHeaders": true,
+        "IncludeMetrics": true
+      },
+      "Retention": {
+        "Days": 90,
+        "MaxFiles": 1000
+      }
+    },
+    "ErrorLogger": {
+      "Path": "./logs/errors/error-{Date}.log",
+      "LogLevel": "Error",
+      "Format": {
+        "Template": "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff}] {Level:u3} - {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}---{NewLine}",
+        "IncludeStackTrace": true,
+        "IncludeInnerExceptions": true
+      },
+      "Alerts": {
+        "EmailOnCritical": true,
+        "EmailRecipients": [
+          "admin@company.com",
+          "support@company.com"
+        ]
+      }
+    },
+    "AuditLogger": {
+      "Path": "./logs/audit/audit-{Date}.log",
+      "LogLevel": "Information",
+      "Format": {
+        "Template": "[{Timestamp:yyyy-MM-dd HH:mm:ss}] {Level:u3} - User: {UserName} | Action: {Action} | Resource: {Resource} | Result: {Result}{NewLine}",
+        "StructuredLogging": true
+      },
+      "Retention": {
+        "Days": 365,
+        "CompressAfterDays": 30
+      }
+    }
+  },
+  "Performance": {
+    "EnableMetrics": true,
+    "MetricsInterval": 60,
+    "PerformanceCounters": {
+      "CpuUsage": true,
+      "MemoryUsage": true,
+      "DiskUsage": true,
+      "NetworkUsage": false
+    },
+    "CustomMetrics": {
+      "ProcessedFiles": true,
+      "ProcessedRecords": true,
+      "ProcessingTime": true,
+      "ErrorRate": true,
+      "ThroughputMBps": true
+    }
+  }
+}

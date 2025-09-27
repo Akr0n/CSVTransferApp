@@ -1,0 +1,66 @@
+{
+  "TableName": "employees",
+  "Description": "Employee data export with user-friendly column headers",
+  "LastModified": "2025-09-27T14:00:00Z",
+  "ColumnMappings": {
+    "employee_id": "Employee ID",
+    "emp_id": "Employee ID",
+    "id": "Employee ID",
+    "first_name": "First Name",
+    "fname": "First Name",
+    "last_name": "Last Name",
+    "lname": "Last Name",
+    "email": "Email Address",
+    "email_address": "Email Address",
+    "phone": "Phone Number",
+    "phone_number": "Phone Number",
+    "hire_date": "Hire Date",
+    "date_hired": "Hire Date",
+    "salary": "Annual Salary",
+    "annual_salary": "Annual Salary",
+    "department_id": "Department ID",
+    "dept_id": "Department ID",
+    "department_name": "Department",
+    "dept_name": "Department",
+    "manager_id": "Manager ID",
+    "mgr_id": "Manager ID",
+    "active": "Active Status",
+    "is_active": "Active Status",
+    "status": "Status",
+    "created_date": "Created Date",
+    "date_created": "Created Date"
+  },
+  "DataTypes": {
+    "Employee ID": "Integer",
+    "First Name": "Text",
+    "Last Name": "Text",
+    "Email Address": "Email",
+    "Phone Number": "Phone",
+    "Hire Date": "Date",
+    "Annual Salary": "Currency",
+    "Department ID": "Integer",
+    "Department": "Text",
+    "Manager ID": "Integer",
+    "Active Status": "Boolean",
+    "Status": "Text",
+    "Created Date": "DateTime"
+  },
+  "ValidationRules": {
+    "Employee ID": {
+      "Required": true,
+      "Type": "Integer",
+      "MinValue": 1
+    },
+    "Email Address": {
+      "Required": true,
+      "Type": "Email",
+      "MaxLength": 100
+    },
+    "Annual Salary": {
+      "Required": false,
+      "Type": "Decimal",
+      "MinValue": 0,
+      "MaxValue": 999999.99
+    }
+  }
+}

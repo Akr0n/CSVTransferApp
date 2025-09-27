@@ -1,0 +1,303 @@
+name: DEV - Build & Release .NET CSV Transfer Application
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write
+  pull-requests: read
+  actions: write
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+
+    steps:
+      # ===== CHECKOUT & SETUP =====
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Importante per avere tutti i tag
+
+      - name: Setup .NET 9.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+          
+      - name: Verify .NET installation
+        run: |
+          dotnet --version
+          dotnet --list-sdks
+
+      # ===== CACHE & RESTORE =====
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: dotnet restore CSVTransferApp.sln
+
+      # ===== BUILD & TEST =====
+      - name: Build solution
+        run: dotnet build CSVTransferApp.sln --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: TestResults/*.trx
+
+      # ===== PUBLISH APPLICATIONS =====
+      - name: Publish Windows x64
+        run: |
+          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj `
+            --configuration Release `
+            --runtime win-x64 `
+            --self-contained true `
+            --output ./publish/win-x64 `
+            /p:PublishSingleFile=true `
+            /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Publish Linux x64
+        run: |
+          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj `
+            --configuration Release `
+            --runtime linux-x64 `
+            --self-contained true `
+            --output ./publish/linux-x64 `
+            /p:PublishSingleFile=true `
+            /p:IncludeNativeLibrariesForSelfExtract=true
+
+      # ===== VERSIONING =====
+      - name: Get last dev tag and increment
+        id: version
+        shell: pwsh
+        run: |
+          # Recupera tutti i tag
+          git fetch --tags
+          
+          # Trova tutti i tag che corrispondono al pattern vX.Y.Z-dev
+          Write-Output "⚠️ DEBUG: Getting all tags..."
+          $all_tags = git tag --list
+          Write-Output "⚠️ DEBUG: Listing all tags: $($all_tags -join ', ')"
+          
+          # Filtra solo i tag nel formato corretto vX.Y.Z-dev
+          $dev_tags = @()
+          foreach ($tag in $all_tags) {
+              if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev$') {
+                  $dev_tags += $tag
+              }
+          }
+          
+          Write-Output "⚠️ DEBUG: Found dev tags: $($dev_tags -join ', ')"
+          
+          if ($dev_tags.Count -eq 0) {
+              # Nessun tag dev esistente, inizia da 1.0.0-dev
+              Write-Output "⚠️ No existing dev tags found, starting from 1.0.0-dev"
+              $new_version = "1.0.0-dev"
+          } else {
+              # Trova la versione più alta
+              $highest_version = @{major=0; minor=0; patch=0}
+              foreach ($tag in $dev_tags) {
+                  if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev$') {
+                      $major = [int]$matches[1]
+                      $minor = [int]$matches[2]
+                      $patch = [int]$matches[3]
+                      
+                      if (($major -gt $highest_version.major) -or
+                          ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or
+                          ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
+                          $highest_version.major = $major
+                          $highest_version.minor = $minor
+                          $highest_version.patch = $patch
+                      }
+                  }
+              }
+              
+              # Incrementa la patch version
+              $new_patch = $highest_version.patch + 1
+              $new_version = "$($highest_version.major).$($highest_version.minor).$new_patch"
+              Write-Output "✅ Incremented from v$($highest_version.major).$($highest_version.minor).$($highest_version.patch)-dev to v$new_version-dev"
+          }
+          
+          $version_tag = "v$new_version-dev"
+          Write-Output "✅ New version will be: $new_version"
+          Write-Output "✅ New tag created: $version_tag"
+          
+          # Setta le variabili di ambiente per GitHub Actions
+          echo "NEWVERSION=$new_version" >> $env:GITHUB_ENV
+          echo "VERSION_TAG=$version_tag" >> $env:GITHUB_ENV
+
+      - name: Check the new version
+        shell: pwsh
+        run: |
+          if ("${{ env.NEWVERSION }}" -eq "") {
+              echo "❌ ::error::NEWVERSION not set! Stopping the workflow."
+              exit 1
+          }
+          
+          echo "Creating version: ${{ env.NEWVERSION }}"
+          echo "Tag will be: ${{ env.VERSION_TAG }}"
+
+      # ===== PACKAGE ARTIFACTS =====
+      - name: Package Windows release
+        run: |
+          # Crea directory per il package Windows
+          New-Item -ItemType Directory -Path "./releases/windows" -Force
+          
+          # Copia executable
+          Copy-Item "./publish/win-x64/CSVTransferApp.Console.exe" "./releases/windows/CSVTransferApp.exe"
+          
+          # Copia file di configurazione e documentazione
+          Copy-Item "./src/CSVTransferApp.Console/appsettings.json" "./releases/windows/"
+          Copy-Item "./config/appsettings.Production.json.template" "./releases/windows/appsettings.Production.json" -ErrorAction SilentlyContinue
+          Copy-Item "./README.md" "./releases/windows/"
+          Copy-Item "./docs/" "./releases/windows/docs/" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item "./scripts/powershell/" "./releases/windows/scripts/" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item "./scripts/sql/" "./releases/windows/sql/" -Recurse -ErrorAction SilentlyContinue
+          
+          # Crea directory per configurazioni
+          New-Item -ItemType Directory -Path "./releases/windows/config/header-overrides" -Force
+          Copy-Item "./config/header-overrides/*.json" "./releases/windows/config/header-overrides/" -ErrorAction SilentlyContinue
+          
+          # Crea zip per Windows
+          Compress-Archive -Path "./releases/windows/*" -DestinationPath "./releases/CSVTransferApp-${{ env.NEWVERSION }}-win-x64.zip"
+
+      - name: Package Linux release
+        run: |
+          # Crea directory per il package Linux
+          New-Item -ItemType Directory -Path "./releases/linux" -Force
+          
+          # Copia executable
+          Copy-Item "./publish/linux-x64/CSVTransferApp.Console" "./releases/linux/CSVTransferApp"
+          
+          # Copia file di configurazione e documentazione
+          Copy-Item "./src/CSVTransferApp.Console/appsettings.json" "./releases/linux/"
+          Copy-Item "./config/appsettings.Production.json.template" "./releases/linux/appsettings.Production.json" -ErrorAction SilentlyContinue
+          Copy-Item "./README.md" "./releases/linux/"
+          Copy-Item "./docs/" "./releases/linux/docs/" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item "./scripts/bash/" "./releases/linux/scripts/" -Recurse -ErrorAction SilentlyContinue
+          Copy-Item "./scripts/sql/" "./releases/linux/sql/" -Recurse -ErrorAction SilentlyContinue
+          
+          # Crea directory per configurazioni
+          New-Item -ItemType Directory -Path "./releases/linux/config/header-overrides" -Force
+          Copy-Item "./config/header-overrides/*.json" "./releases/linux/config/header-overrides/" -ErrorAction SilentlyContinue
+          
+          # Crea tar.gz per Linux
+          tar -czf "./releases/CSVTransferApp-${{ env.NEWVERSION }}-linux-x64.tar.gz" -C "./releases/linux" .
+
+      # ===== CREATE TAG =====
+      - name: Create and push tag
+        shell: pwsh
+        run: |
+          git config --global user.email "csvtransferapp.bot@gmail.com"
+          git config --global user.name "CSV Transfer App Bot"
+          git tag ${{ env.VERSION_TAG }}
+          git push origin ${{ env.VERSION_TAG }}
+
+      # ===== GENERATE CHANGELOG =====
+      - name: Generate changelog
+        id: changelog
+        uses: mikepenz/release-changelog-builder-action@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          toTag: ${{ env.VERSION_TAG }}
+          configuration: |
+            {
+              "template": "## 🚀 CSV Transfer Application - Development Release\n\n### 📋 Changes in this release:\n#{{CHANGELOG}}\n\n### 🔗 Links:\n- **Download Windows**: [CSVTransferApp-${{ env.NEWVERSION }}-win-x64.zip](https://github.com/${{github.repository}}/releases/download/${{ env.VERSION_TAG }}/CSVTransferApp-${{ env.NEWVERSION }}-win-x64.zip)\n- **Download Linux**: [CSVTransferApp-${{ env.NEWVERSION }}-linux-x64.tar.gz](https://github.com/${{github.repository}}/releases/download/${{ env.VERSION_TAG }}/CSVTransferApp-${{ env.NEWVERSION }}-linux-x64.tar.gz)\n\n### 📚 Documentation:\nSee the included `docs/` directory for complete documentation.\n\n---\n**Full Changelog**: #{{RELEASE_DIFF}}",
+              "pr_template": "- 🔧 #{{TITLE}} by @#{{AUTHOR}} in ##{{NUMBER}}",
+              "empty_template": "- 🎯 Direct commits to develop branch",
+              "categories": [
+                {
+                  "title": "## 🆕 New Features",
+                  "labels": ["feature", "enhancement"]
+                },
+                {
+                  "title": "## 🐛 Bug Fixes", 
+                  "labels": ["bug", "fix"]
+                },
+                {
+                  "title": "## 📚 Documentation",
+                  "labels": ["documentation"]
+                },
+                {
+                  "title": "## 🔧 Maintenance",
+                  "labels": ["maintenance", "chore"]
+                }
+              ]
+            }
+
+      # ===== CREATE RELEASE =====
+      - name: Create development release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION_TAG }}
+          name: "🚀 CSV Transfer App - Development v${{ env.NEWVERSION }}"
+          body: ${{ steps.changelog.outputs.changelog }}
+          prerelease: true
+          draft: false
+          files: |
+            ./releases/CSVTransferApp-${{ env.NEWVERSION }}-win-x64.zip
+            ./releases/CSVTransferApp-${{ env.NEWVERSION }}-linux-x64.tar.gz
+
+      # ===== POST-BUILD TASKS =====
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: csvtransferapp-builds-${{ env.NEWVERSION }}
+          path: |
+            ./releases/CSVTransferApp-${{ env.NEWVERSION }}-win-x64.zip
+            ./releases/CSVTransferApp-${{ env.NEWVERSION }}-linux-x64.tar.gz
+          retention-days: 30
+
+      - name: Generate build summary
+        shell: pwsh
+        run: |
+          Write-Output "## 🎉 Build Summary" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "### ✅ Build Information:" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "- **Version**: ${{ env.NEWVERSION }}" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "- **Tag**: ${{ env.VERSION_TAG }}" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "- **Branch**: develop" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "- **Commit**: ${{ github.sha }}" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "### 📦 Generated Artifacts:" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "- Windows x64: ``CSVTransferApp-${{ env.NEWVERSION }}-win-x64.zip``" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "- Linux x64: ``CSVTransferApp-${{ env.NEWVERSION }}-linux-x64.tar.gz``" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "### 🔗 Release URL:" >> $env:GITHUB_STEP_SUMMARY
+          Write-Output "[${{ env.VERSION_TAG }}](https://github.com/${{ github.repository }}/releases/tag/${{ env.VERSION_TAG }})" >> $env:GITHUB_STEP_SUMMARY
+
+      # ===== CLEANUP =====
+      - name: Cleanup temporary files
+        if: always()
+        run: |
+          Remove-Item -Path "./publish" -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path "./releases/windows" -Recurse -Force -ErrorAction SilentlyContinue
+          Remove-Item -Path "./releases/linux" -Recurse -Force -ErrorAction SilentlyContinue
+
+      # ===== NOTIFICATION (opzionale) =====
+      - name: Notify on success
+        if: success()
+        run: |
+          Write-Output "🎉 Development release ${{ env.VERSION_TAG }} created successfully!"
+          Write-Output "📦 Windows and Linux binaries are available for download"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          Write-Output "❌ Development release build failed!"
+          Write-Output "::error::Check the workflow logs for details"

@@ -1,0 +1,71 @@
+{
+  "TableName": "orders",
+  "Description": "Order data export with business-friendly headers",
+  "LastModified": "2025-09-27T14:00:00Z",
+  "ColumnMappings": {
+    "order_id": "Order Number",
+    "id": "Order Number",
+    "customer_id": "Customer ID",
+    "cust_id": "Customer ID",
+    "employee_id": "Sales Rep ID",
+    "emp_id": "Sales Rep ID",
+    "salesperson_id": "Sales Rep ID",
+    "order_date": "Order Date",
+    "date_ordered": "Order Date",
+    "required_date": "Required Date",
+    "date_required": "Required Date",
+    "shipped_date": "Ship Date",
+    "date_shipped": "Ship Date",
+    "ship_via": "Shipping Method",
+    "shipping_method": "Shipping Method",
+    "freight": "Shipping Cost",
+    "shipping_cost": "Shipping Cost",
+    "ship_name": "Ship To Name",
+    "shipping_name": "Ship To Name",
+    "ship_address": "Ship To Address",
+    "shipping_address": "Ship To Address",
+    "ship_city": "Ship To City",
+    "shipping_city": "Ship To City",
+    "ship_region": "Ship To State/Region",
+    "ship_state": "Ship To State/Region",
+    "shipping_region": "Ship To State/Region",
+    "ship_postal_code": "Ship To ZIP Code",
+    "ship_zip": "Ship To ZIP Code",
+    "shipping_postal_code": "Ship To ZIP Code",
+    "ship_country": "Ship To Country",
+    "shipping_country": "Ship To Country",
+    "order_total": "Order Total",
+    "total_amount": "Order Total",
+    "created_date": "Created Date"
+  },
+  "DataTypes": {
+    "Order Number": "Integer",
+    "Customer ID": "Text",
+    "Sales Rep ID": "Integer",
+    "Order Date": "Date",
+    "Required Date": "Date",
+    "Ship Date": "Date",
+    "Shipping Method": "Integer",
+    "Shipping Cost": "Currency",
+    "Ship To Name": "Text",
+    "Ship To Address": "Text",
+    "Ship To City": "Text",
+    "Ship To State/Region": "Text",
+    "Ship To ZIP Code": "Text",
+    "Ship To Country": "Text",
+    "Order Total": "Currency",
+    "Created Date": "DateTime"
+  },
+  "ConditionalFormatting": {
+    "Ship Date": {
+      "EmptyValue": "Not Shipped",
+      "NullValue": "Pending Shipment"
+    },
+    "Shipping Cost": {
+      "Format": "Currency",
+      "CurrencySymbol": "$",
+      "DecimalPlaces": 2,
+      "ZeroValue": "Free Shipping"
+    }
+  }
+}
