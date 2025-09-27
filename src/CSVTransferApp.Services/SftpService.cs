@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 // Services/SftpService.cs
 public class SftpService
 {
@@ -17,11 +19,11 @@ public class SftpService
         var client = GetSftpClient(connectionName);
         var config = _configuration.GetSection($"SftpConnections:{connectionName}");
         var remotePath = Path.Combine(config["RemotePath"], fileName);
-        
+
         _logger.LogInformation("Uploading {FileName} to {RemotePath}", fileName, remotePath);
-        
+
         await Task.Run(() => client.UploadFile(fileStream, remotePath));
-        
+
         _logger.LogInformation("Upload completed: {FileName}", fileName);
     }
 
@@ -33,9 +35,9 @@ public class SftpService
             var host = config["Host"];
             var port = int.Parse(config["Port"]);
             var username = config["Username"];
-            
+
             SftpClient client;
-            
+
             if (!string.IsNullOrEmpty(config["PrivateKeyPath"]))
             {
                 var privateKey = new PrivateKeyFile(config["PrivateKeyPath"]);
@@ -45,7 +47,7 @@ public class SftpService
             {
                 client = new SftpClient(host, port, username, config["Password"]);
             }
-            
+
             client.Connect();
             return client;
         });

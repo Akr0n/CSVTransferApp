@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+
 // Services/DatabaseService.cs
 public class DatabaseService
 {
@@ -17,14 +19,14 @@ public class DatabaseService
         var connection = await GetConnectionAsync(connectionName);
         using var command = connection.CreateCommand();
         command.CommandText = query;
-        
-        _logger.LogInformation("Executing query on {Connection}: {Query}", 
+
+        _logger.LogInformation("Executing query on {Connection}: {Query}",
             connectionName, query);
-        
+
         var adapter = CreateDataAdapter(connection, command);
         var dataTable = new DataTable();
         adapter.Fill(dataTable);
-        
+
         return dataTable;
     }
 
@@ -35,7 +37,7 @@ public class DatabaseService
             var config = _configuration.GetSection($"DatabaseConnections:{name}");
             var connectionString = config["ConnectionString"];
             var provider = config["Provider"];
-            
+
             return provider switch
             {
                 "Oracle.EntityFrameworkCore" => new OracleConnection(connectionString),
