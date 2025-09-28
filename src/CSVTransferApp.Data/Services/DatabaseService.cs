@@ -1,4 +1,9 @@
 using System.Collections.Concurrent;
+using System.Data;
+using System.Data.Common;
+using System.Data.SqlClient;
+using Oracle.ManagedDataAccess.Client;
+using Npgsql;
 
 // Services/DatabaseService.cs
 public class DatabaseService
@@ -23,16 +28,18 @@ public class DatabaseService
         _logger.LogInformation("Executing query on {Connection}: {Query}",
             connectionName, query);
 
-        var adapter = CreateDataAdapter(connection, command);
+        //var adapter = CreateDataAdapter(connection, command);
+        var factory = DbProviderFactories.GetFactory(providerName);
+        var adapter = factory.CreateDataAdapter();
         var dataTable = new DataTable();
         adapter.Fill(dataTable);
 
         return dataTable;
     }
 
-    private async Task<IDbConnection> GetConnectionAsync(string connectionName)
+    private Task<IDbConnection> GetConnectionAsync(string connectionName)
     {
-        return _connections.GetOrAdd(connectionName, name =>
+        var connection = _connections.GetOrAdd(connectionName, name =>
         {
             var config = _configuration.GetSection($"DatabaseConnections:{name}");
             var connectionString = config["ConnectionString"];
@@ -46,5 +53,7 @@ public class DatabaseService
                 _ => throw new NotSupportedException($"Provider {provider} not supported")
             };
         });
+
+        return Task.FromResult(connection);
     }
 }

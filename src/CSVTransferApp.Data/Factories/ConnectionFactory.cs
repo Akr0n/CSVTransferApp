@@ -26,8 +26,11 @@ public class ConnectionFactory
             throw new NotSupportedException($"Database provider '{config.Provider}' is not supported");
         }
 
-        var connection = provider.CreateConnection(config);
-        connection.ConnectionTimeout = config.ConnectionTimeout;
+        //var connection = provider.CreateConnection(config);
+        //connection.ConnectionTimeout = config.ConnectionTimeout;
+        string connectionString = $"...;Connection Timeout={config.ConnectionTimeout};...";
+        var connection = new SqlConnection(connectionString); // oppure NpgsqlConnection, OracleConnection ecc.
+
         return connection;
     }
 

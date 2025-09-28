@@ -23,34 +23,42 @@ public class DatabaseConnectionManager : IDisposable
 
     public async Task<IDbConnection> GetConnectionAsync(string connectionName)
     {
-        if (_activeConnections.TryGetValue(connectionName, out var existingConnection) 
+        // Primo controllo senza lock
+        if (_activeConnections.TryGetValue(connectionName, out var existingConnection)
             && existingConnection.State == ConnectionState.Open)
         {
             return existingConnection;
         }
 
+        IDbConnection? connection = null;
+
+        // Se serve creare una connessione, acquisisci il lock solo per le operazioni sul dizionario
         lock (_lockObject)
         {
-            if (_activeConnections.TryGetValue(connectionName, out var connection) 
-                && connection.State == ConnectionState.Open)
+            if (_activeConnections.TryGetValue(connectionName, out var conn) 
+                && conn.State == ConnectionState.Open)
             {
-                return connection;
+                return conn;
             }
 
-            try
-            {
-                var config = _configurationService.GetDatabaseConnection(connectionName);
-                var newConnection = _connectionFactory.CreateConnection(config);
-                
-                newConnection.Open();
-                _activeConnections.TryAdd(connectionName, newConnection);
-                
-                return newConnection;
-            }
-            catch (Exception ex)
-            {
-                throw new DatabaseConnectionException(connectionName, $"Failed to establish connection: {ex.Message}", ex);
-            }
+            var config = _configurationService.GetDatabaseConnection(connectionName);
+            connection = _connectionFactory.CreateConnection(config);
+
+            // Non aprire la connessione qui! Solo aggiungi al dizionario se vuoi il comportamento early registration:
+            _activeConnections.TryAdd(connectionName, connection);
+        }
+
+        // Fuori dal lock: apri asincrono la connessione
+        if (connection is DbConnection dbConn)
+        {
+            await dbConn.OpenAsync();
+            return dbConn;
+        }
+        else
+        {
+            // Per provider che non supportano OpenAsync
+            connection.Open();
+            return connection;
         }
     }
 

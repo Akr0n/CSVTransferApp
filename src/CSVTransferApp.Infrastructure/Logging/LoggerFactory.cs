@@ -47,7 +47,7 @@ public class CompositeLogger : ILogger
         _consoleLogger = new ConsoleLogger(categoryName);
     }
 
-    public IDisposable? BeginScope<TState>(TState state) => null;
+    IDisposable? ILogger.BeginScope<TState>(TState state) => null;
 
     public bool IsEnabled(LogLevel logLevel) => _fileLogger.IsEnabled(logLevel) || _consoleLogger.IsEnabled(logLevel);
 

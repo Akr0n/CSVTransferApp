@@ -8,8 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="SSH.NET" Version="2023.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
