@@ -178,12 +178,61 @@ jobs:
           }
           
           # Copia file di configurazione e documentazione
-          Copy-Item "./src/CSVTransferApp.Console/appsettings.json" "./releases/windows/"
-          Copy-Item "./config/appsettings.Production.json.template" "./releases/windows/appsettings.Production.json" -ErrorAction SilentlyContinue
-          Copy-Item "./README.md" "./releases/windows/"
-          Copy-Item "./docs/" "./releases/windows/docs/" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item "./scripts/powershell/" "./releases/windows/scripts/" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item "./scripts/sql/" "./releases/windows/sql/" -Recurse -ErrorAction SilentlyContinue
+          Write-Output "Copying configuration and documentation files..."
+          
+          # File obbligatori (devono esistere)
+          if (Test-Path "./src/CSVTransferApp.Console/appsettings.json") {
+              Copy-Item "./src/CSVTransferApp.Console/appsettings.json" "./releases/windows/"
+          } else {
+              Write-Error "Required file appsettings.json not found!"
+              exit 1
+          }
+          
+          # File e cartelle opzionali
+          $optionalFiles = @(
+              @{
+                  "Source" = "./config/appsettings.Production.json.template"
+                  "Destination" = "./releases/windows/appsettings.Production.json"
+              },
+              @{
+                  "Source" = "./README.md"
+                  "Destination" = "./releases/windows/README.md"
+              }
+          )
+          
+          foreach ($file in $optionalFiles) {
+              if (Test-Path $file.Source) {
+                  Write-Output "Copying $($file.Source)..."
+                  Copy-Item $file.Source $file.Destination
+              } else {
+                  Write-Output "Optional file $($file.Source) not found, skipping..."
+              }
+          }
+          
+          # Cartelle opzionali
+          $optionalFolders = @(
+              @{
+                  "Source" = "./docs"
+                  "Destination" = "./releases/windows/docs"
+              },
+              @{
+                  "Source" = "./scripts/powershell"
+                  "Destination" = "./releases/windows/scripts"
+              },
+              @{
+                  "Source" = "./scripts/sql"
+                  "Destination" = "./releases/windows/sql"
+              }
+          )
+          
+          foreach ($folder in $optionalFolders) {
+              if (Test-Path $folder.Source) {
+                  Write-Output "Copying $($folder.Source)..."
+                  Copy-Item $folder.Source $folder.Destination -Recurse
+              } else {
+                  Write-Output "Optional folder $($folder.Source) not found, skipping..."
+              }
+          }
           
           # Crea directory per configurazioni
           New-Item -ItemType Directory -Path "./releases/windows/config/header-overrides" -Force
@@ -214,12 +263,61 @@ jobs:
           }
           
           # Copia file di configurazione e documentazione
-          Copy-Item "./src/CSVTransferApp.Console/appsettings.json" "./releases/linux/"
-          Copy-Item "./config/appsettings.Production.json.template" "./releases/linux/appsettings.Production.json" -ErrorAction SilentlyContinue
-          Copy-Item "./README.md" "./releases/linux/"
-          Copy-Item "./docs/" "./releases/linux/docs/" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item "./scripts/bash/" "./releases/linux/scripts/" -Recurse -ErrorAction SilentlyContinue
-          Copy-Item "./scripts/sql/" "./releases/linux/sql/" -Recurse -ErrorAction SilentlyContinue
+          Write-Output "Copying configuration and documentation files..."
+          
+          # File obbligatori (devono esistere)
+          if (Test-Path "./src/CSVTransferApp.Console/appsettings.json") {
+              Copy-Item "./src/CSVTransferApp.Console/appsettings.json" "./releases/linux/"
+          } else {
+              Write-Error "Required file appsettings.json not found!"
+              exit 1
+          }
+          
+          # File e cartelle opzionali
+          $optionalFiles = @(
+              @{
+                  "Source" = "./config/appsettings.Production.json.template"
+                  "Destination" = "./releases/linux/appsettings.Production.json"
+              },
+              @{
+                  "Source" = "./README.md"
+                  "Destination" = "./releases/linux/README.md"
+              }
+          )
+          
+          foreach ($file in $optionalFiles) {
+              if (Test-Path $file.Source) {
+                  Write-Output "Copying $($file.Source)..."
+                  Copy-Item $file.Source $file.Destination
+              } else {
+                  Write-Output "Optional file $($file.Source) not found, skipping..."
+              }
+          }
+          
+          # Cartelle opzionali
+          $optionalFolders = @(
+              @{
+                  "Source" = "./docs"
+                  "Destination" = "./releases/linux/docs"
+              },
+              @{
+                  "Source" = "./scripts/bash"
+                  "Destination" = "./releases/linux/scripts"
+              },
+              @{
+                  "Source" = "./scripts/sql"
+                  "Destination" = "./releases/linux/sql"
+              }
+          )
+          
+          foreach ($folder in $optionalFolders) {
+              if (Test-Path $folder.Source) {
+                  Write-Output "Copying $($folder.Source)..."
+                  Copy-Item $folder.Source $folder.Destination -Recurse
+              } else {
+                  Write-Output "Optional folder $($folder.Source) not found, skipping..."
+              }
+          }
           
           # Crea directory per configurazioni
           New-Item -ItemType Directory -Path "./releases/linux/config/header-overrides" -Force
