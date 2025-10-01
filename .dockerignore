@@ -1,0 +1,38 @@
+# Directories
+.git/
+.vs/
+.vscode/
+[Bb]in/[Dd]ebug/
+[Oo]bj/
+[Tt]est[Rr]esults/
+tests/
+docs/
+scripts/
+
+# Files
+*.user
+*.userosscache
+*.dbmdl
+*.jfm
+*.pdb
+*.tmp
+*.temp
+*.log
+.DS_Store
+.env
+.env.*
+
+# Development config files
+**/appsettings.Development.json
+**/appsettings.Test.json
+sonar-project.properties
+.editorconfig
+README.md
+*.md
+
+# Test files
+*.Tests.csproj
+*.test.js
+*.spec.js
+TestResults/
+coverage/

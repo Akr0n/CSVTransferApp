@@ -21,6 +21,51 @@ public class FileHeaderService : IFileHeaderService
         Directory.CreateDirectory(_overridePath);
     }
 
+    public async Task<Dictionary<string, string>> GetHeaderMappingsAsync(string tableName)
+    {
+        var overrideFile = Path.Combine(_overridePath, $"{tableName}.json");
+        
+        if (!File.Exists(overrideFile))
+        {
+            _logger.LogInformation("No header mappings found for table {TableName}", tableName);
+            return new Dictionary<string, string>();
+        }
+
+        try
+        {
+            var json = await File.ReadAllTextAsync(overrideFile);
+            var headerOverride = JsonSerializer.Deserialize<HeaderOverride>(json);
+            return headerOverride?.ColumnMappings ?? new Dictionary<string, string>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading header mappings for table {TableName}", tableName);
+            return new Dictionary<string, string>();
+        }
+    }
+
+    public async Task SaveHeaderMappingsAsync(string tableName, Dictionary<string, string> mappings)
+    {
+        var overrideFile = Path.Combine(_overridePath, $"{tableName}.json");
+        var headerOverride = new HeaderOverride
+        {
+            TableName = tableName,
+            ColumnMappings = mappings
+        };
+
+        try
+        {
+            var json = JsonSerializer.Serialize(headerOverride, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(overrideFile, json);
+            _logger.LogInformation("Saved header mappings for table {TableName}", tableName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving header mappings for table {TableName}", tableName);
+            throw;
+        }
+    }
+
     public async Task<string[]> GetHeadersAsync(string tableName, string[] originalHeaders)
     {
         var overrideFile = Path.Combine(_overridePath, $"{tableName}.json");

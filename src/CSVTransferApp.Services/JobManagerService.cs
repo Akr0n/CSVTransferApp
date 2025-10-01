@@ -22,6 +22,30 @@ public class JobManagerService : IJobManagerService
         _activeJobs = new ConcurrentDictionary<string, ProcessingResult>();
     }
 
+    private readonly ConcurrentQueue<TransferJob> _jobQueue = new();
+    
+    public Task QueueJobAsync(TransferJob job)
+    {
+        _jobQueue.Enqueue(job);
+        _logger.LogInformation("Job queued for table {TableName}", job.TableName);
+        return Task.CompletedTask;
+    }
+
+    public async Task ProcessQueueAsync(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (_jobQueue.TryDequeue(out var job))
+            {
+                await SubmitJobAsync(job);
+            }
+            else
+            {
+                await Task.Delay(1000, cancellationToken); // Wait before checking queue again
+            }
+        }
+    }
+
     public async Task<ProcessingResult> SubmitJobAsync(TransferJob job)
     {
         await _concurrentJobsSemaphore.WaitAsync();
