@@ -161,8 +161,21 @@ jobs:
           # Crea directory per il package Windows
           New-Item -ItemType Directory -Path "./releases/windows" -Force
           
-          # Copia executable
-          Copy-Item "./publish/win-x64/CSVTransferApp.Console.exe" "./releases/windows/CSVTransferApp.exe"
+          # Verifica esistenza e copia executable
+          $exePath = "./publish/win-x64/CSVTransferApp.exe"
+          Write-Output "Checking for executable at: $exePath"
+          if (Test-Path $exePath) {
+              Copy-Item $exePath "./releases/windows/CSVTransferApp.exe"
+          } else {
+              $alternatives = Get-ChildItem "./publish/win-x64/" -Filter "*.exe"
+              if ($alternatives.Count -gt 0) {
+                  Write-Output "Found alternative executables: $($alternatives.Name -join ', ')"
+                  Copy-Item $alternatives[0].FullName "./releases/windows/CSVTransferApp.exe"
+              } else {
+                  Write-Error "No executable found in ./publish/win-x64/"
+                  exit 1
+              }
+          }
           
           # Copia file di configurazione e documentazione
           Copy-Item "./src/CSVTransferApp.Console/appsettings.json" "./releases/windows/"
@@ -184,8 +197,21 @@ jobs:
           # Crea directory per il package Linux
           New-Item -ItemType Directory -Path "./releases/linux" -Force
           
-          # Copia executable
-          Copy-Item "./publish/linux-x64/CSVTransferApp.Console" "./releases/linux/CSVTransferApp"
+          # Verifica esistenza e copia executable
+          $exePath = "./publish/linux-x64/CSVTransferApp"
+          Write-Output "Checking for executable at: $exePath"
+          if (Test-Path $exePath) {
+              Copy-Item $exePath "./releases/linux/CSVTransferApp"
+          } else {
+              $alternatives = Get-ChildItem "./publish/linux-x64/" -Filter "CSVTransferApp*"
+              if ($alternatives.Count -gt 0) {
+                  Write-Output "Found alternative executables: $($alternatives.Name -join ', ')"
+                  Copy-Item $alternatives[0].FullName "./releases/linux/CSVTransferApp"
+              } else {
+                  Write-Error "No executable found in ./publish/linux-x64/"
+                  exit 1
+              }
+          }
           
           # Copia file di configurazione e documentazione
           Copy-Item "./src/CSVTransferApp.Console/appsettings.json" "./releases/linux/"
