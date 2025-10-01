@@ -1,3 +1,7 @@
+using System.Text.Json;
+using CSVTransferApp.Core.Exceptions;
+using CSVTransferApp.Core.Models;
+
 // Services/CsvProcessingService.cs
 public class CsvProcessingService
 {
@@ -51,11 +55,21 @@ public class CsvProcessingService
             // Controlla override headers
             var headers = await GetHeadersAsync(job.TableName, data);
             
-            // Genera CSV
-            using var csvStream = GenerateCsvStream(data, headers);
+            // Genera CSV e gestisci la risorsa
+            await using var csvStream = GenerateCsvStream(data, headers);
             
-            // Upload SFTP
-            await _sftpService.UploadFileAsync(job.SftpConnection, csvStream, csvFileName);
+            // Upload SFTP con retry in caso di errore
+            try
+            {
+                await _sftpService.UploadFileAsync(job.SftpConnection, csvStream, csvFileName);
+            }
+            catch (SftpConnectionException ex)
+            {
+                _logger.LogWarning(ex, "SFTP upload failed for {TableName}, retrying...", job.TableName);
+                // Riposiziona lo stream all'inizio per il retry
+                csvStream.Position = 0;
+                await _sftpService.UploadFileAsync(job.SftpConnection, csvStream, csvFileName);
+            }
             
             // Genera log specifico
             await GenerateJobLogAsync(job, logFileName, headers, data.Rows.Count);
@@ -76,7 +90,7 @@ public class CsvProcessingService
 
     private async Task<string[]> GetHeadersAsync(string tableName, DataTable data)
     {
-        var overridePath = _configuration.GetValue<string>("Processing:HeaderOverridePath");
+        var overridePath = _configuration.GetValue<string>("Processing:HeaderOverridePath") ?? "config/header-overrides";
         var overrideFile = Path.Combine(overridePath, $"{tableName}.json");
         
         if (File.Exists(overrideFile))
@@ -86,7 +100,7 @@ public class CsvProcessingService
             var overrideData = JsonSerializer.Deserialize<HeaderOverride>(json);
             
             return data.Columns.Cast<DataColumn>()
-                .Select(col => overrideData.ColumnMappings.GetValueOrDefault(col.ColumnName, col.ColumnName))
+                .Select(col => overrideData?.ColumnMappings?.GetValueOrDefault(col.ColumnName, col.ColumnName) ?? col.ColumnName)
                 .ToArray();
         }
         
@@ -123,5 +137,20 @@ public class CsvProcessingService
         }
         
         return value;
+    }
+
+    private async Task GenerateJobLogAsync(TransferJob job, string logFileName, string[] headers, int rowCount)
+    {
+        var logDir = _configuration.GetValue<string>("Processing:LogPath") ?? "logs/transfers";
+        Directory.CreateDirectory(logDir);
+        
+        var logPath = Path.Combine(logDir, logFileName);
+        var logContent = $"Transfer completed at {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss UTC}\n" +
+                        $"Table: {job.TableName}\n" +
+                        $"Headers: {string.Join(", ", headers)}\n" +
+                        $"Records processed: {rowCount}\n";
+        
+        await File.WriteAllTextAsync(logPath, logContent);
+        _logger.LogInformation("Job log generated at {LogPath}", logPath);
     }
 }
