@@ -12,13 +12,15 @@ public static class DataTableExtensions
         
         // Write headers
         var headers = customHeaders ?? dataTable.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray();
-        writer.WriteLine(string.Join(",", headers.Select(EscapeCsvValue)));
+        writer.Write(string.Join(",", headers.Select(EscapeCsvValue)));
+        writer.Write("\n");
         
         // Write data rows
         foreach (DataRow row in dataTable.Rows)
         {
             var values = row.ItemArray.Select(field => EscapeCsvValue(field?.ToString() ?? ""));
-            writer.WriteLine(string.Join(",", values));
+            writer.Write(string.Join(",", values));
+            writer.Write("\n");
         }
         
         writer.Flush();

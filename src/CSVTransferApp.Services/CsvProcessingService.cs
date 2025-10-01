@@ -3,7 +3,7 @@ using CSVTransferApp.Core.Exceptions;
 using CSVTransferApp.Core.Models;
 using CSVTransferApp.Core.Interfaces;
 
-// Services/CsvProcessingService.cs
+namespace CSVTransferApp.Services;
 public class CsvProcessingService : ICsvProcessingService
 {
     private readonly DatabaseService _databaseService;

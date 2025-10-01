@@ -5,7 +5,7 @@ using CSVTransferApp.Core.Constants;
 
 namespace CSVTransferApp.Services;
 
-public class FileHeaderService
+public class FileHeaderService : IFileHeaderService
 {
     private readonly IConfigurationService _configurationService;
     private readonly ILoggerService _logger;

@@ -13,7 +13,7 @@ public class HeaderOverrideTests
         var headerOverride = new HeaderOverride();
 
         // Assert
-        headerOverride.ColumnMappings.Should().BeNull();
+        headerOverride.ColumnMappings.Should().BeEmpty();
     }
 
     [Fact]

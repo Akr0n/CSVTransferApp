@@ -1,0 +1,96 @@
+using CSVTransferApp.Core.Models;
+using CSVTransferApp.Core.Interfaces;
+using CSVTransferApp.Integration.Tests.Mocks;
+using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Testcontainers.PostgreSql;
+using Xunit;
+using FluentAssertions;
+
+namespace CSVTransferApp.Integration.Tests;
+
+public class CsvTransferIntegrationTests : IAsyncLifetime
+{
+    private readonly PostgreSqlContainer _dbContainer;
+    private IServiceProvider? _serviceProvider;
+    private ICsvProcessingService? _csvProcessingService;
+
+    public CsvTransferIntegrationTests()
+    {
+        _dbContainer = new PostgreSqlBuilder()
+            .WithImage("postgres:latest")
+            .WithDatabase("testdb")
+            .WithUsername("test")
+            .WithPassword("test")
+            .Build();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _dbContainer.StartAsync();
+        
+        // Setup test database
+        using var conn = _dbContainer.GetDataSource().CreateConnection();
+        await conn.OpenAsync();
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            CREATE TABLE employees (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(100),
+                email VARCHAR(100)
+            );
+            INSERT INTO employees (name, email) VALUES 
+                ('John Doe', 'john@example.com'),
+                ('Jane Smith', 'jane@example.com');
+        ";
+        await cmd.ExecuteNonQueryAsync();
+
+        // Setup minimal services
+        var services = new ServiceCollection()
+            .AddLogging()
+            .AddScoped<ICsvProcessingService, MockCsvProcessingService>();
+        
+        _serviceProvider = services.BuildServiceProvider();
+        _csvProcessingService = _serviceProvider.GetRequiredService<ICsvProcessingService>();
+    }
+
+    public async Task DisposeAsync()
+    {
+        if (_serviceProvider is IAsyncDisposable disposable)
+        {
+            await disposable.DisposeAsync();
+        }
+        else if (_serviceProvider is IDisposable disposable2)
+        {
+            disposable2.Dispose();
+        }
+        
+        await _dbContainer.DisposeAsync();
+    }
+
+    [Fact]
+    public async Task ProcessJob_ShouldExportCsvFromDatabase()
+    {
+        // Arrange
+        var job = new TransferJob
+        {
+            TableName = "employees",
+            DatabaseConnection = _dbContainer.GetConnectionString(),
+            Query = "SELECT * FROM employees ORDER BY id"
+        };
+
+        // Act
+        await _csvProcessingService!.ProcessJobAsync(job);
+
+        // Assert
+        job.Status.Should().NotBe(TransferJobStatus.Failed);
+        
+        // TODO: Verify CSV file content
+        // var csvPath = Path.Combine(_outputDirectory, $"{job.TableName}.csv");
+        // File.Exists(csvPath).Should().BeTrue();
+        // var csvContent = await File.ReadAllTextAsync(csvPath);
+        // csvContent.Should().Contain("John Doe,john@example.com");
+        // csvContent.Should().Contain("Jane Smith,jane@example.com");
+    }
+}

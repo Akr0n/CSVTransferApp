@@ -1,6 +1,9 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Renci.SshNet;
 
-// Services/SftpService.cs
+namespace CSVTransferApp.Services;
 public class SftpService : ISftpService
 {
     private readonly IConfiguration _configuration;

@@ -4,7 +4,7 @@ using CSVTransferApp.Core.Interfaces;
 
 namespace CSVTransferApp.Services;
 
-public class JobManagerService
+public class JobManagerService : IJobManagerService
 {
     private readonly ICsvProcessingService _processingService;
     private readonly ILoggerService _logger;

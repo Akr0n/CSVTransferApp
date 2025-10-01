@@ -49,4 +49,9 @@ public class TransferJob
     /// Nome utente che ha richiesto il job (per audit)
     /// </summary>
     public string RequestedBy { get; set; } = Environment.UserName;
+
+    /// <summary>
+    /// Stato del job
+    /// </summary>
+    public TransferJobStatus Status { get; set; } = TransferJobStatus.Pending;
 }
