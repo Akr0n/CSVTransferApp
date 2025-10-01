@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build-release:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
@@ -61,17 +61,89 @@ jobs:
             /p:PublishSingleFile=true \
             /p:IncludeNativeLibrariesForSelfExtract=true
 
-      - name: Create release package
+      - name: Publish framework-dependent (DLL)
         run: |
-          cd publish/${{ matrix.artifact }}
-          if [ "${{ matrix.runtime }}" = "win-x64" ]; then
-            zip -r ../../CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.zip .
-          else
-            tar -czf ../../CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.tar.gz .
-          fi
+          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj \
+            --configuration Release \
+            --output ./publish/${{ matrix.artifact }}-fx
+
+      - name: Copy publish to deploy folder and create archives (Windows)
+        if: ${{ matrix.runtime == 'win-x64' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "./deploy/windows/publish" -Force
+          New-Item -ItemType Directory -Path "./deploy/windows/publish-fx" -Force
+          New-Item -ItemType Directory -Path "./deploy/windows/archives" -Force
+          Copy-Item -Path "./publish/win-x64/*" -Destination "./deploy/windows/publish/" -Recurse -Force
+          Copy-Item -Path "./publish/win-x64-fx/*" -Destination "./deploy/windows/publish-fx/" -Recurse -Force -ErrorAction SilentlyContinue
+          # create zip archives
+          Compress-Archive -Path "./deploy/windows/publish/*" -DestinationPath "./deploy/windows/archives/CSVTransferApp-win-selfcontained.zip" -Force
+          Compress-Archive -Path "./deploy/windows/publish-fx/*" -DestinationPath "./deploy/windows/archives/CSVTransferApp-win-fx.zip" -Force
+
+      - name: Copy publish to deploy folder and create archives (Linux)
+        if: ${{ matrix.runtime == 'linux-x64' }}
+        run: |
+          mkdir -p ./deploy/linux/publish ./deploy/linux/publish-fx ./deploy/linux/archives
+          cp -r ./publish/linux-x64/* ./deploy/linux/publish/ || true
+          cp -r ./publish/linux-x64-fx/* ./deploy/linux/publish-fx/ || true
+          tar -czf ./deploy/linux/archives/CSVTransferApp-linux-selfcontained.tar.gz -C ./deploy/linux/publish .
+          tar -czf ./deploy/linux/archives/CSVTransferApp-linux-fx.tar.gz -C ./deploy/linux/publish-fx .
+
+      - name: Create release package (Windows)
+        if: ${{ matrix.runtime == 'win-x64' }}
+        shell: pwsh
+        run: |
+          Push-Location -Path "publish/${{ matrix.artifact }}"
+          $out = "../../CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.zip"
+          Compress-Archive -Path * -DestinationPath $out -Force
+          Pop-Location
+
+      - name: Create release package (Linux)
+        if: ${{ matrix.runtime == 'linux-x64' }}
+        run: |
+          mkdir -p ./publish/${{ matrix.artifact }}
+          tar -czf CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.tar.gz -C publish/${{ matrix.artifact }} .
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v4
         with:
           name: csvtransferapp-${{ matrix.artifact }}
-          path: CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.*
+          path: |
+            CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.*
+            deploy/windows/archives/**
+            deploy/linux/archives/**
+
+  create-release:
+    needs: build-release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: csvtransferapp-win-x64
+          path: ./artifacts/win
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: csvtransferapp-linux-x64
+          path: ./artifacts/linux
+
+      - name: Create and push release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "CSVTransferApp Release ${{ github.ref_name }}"
+          body: "Automated release for ${{ github.ref_name }}"
+          files: |
+            ./artifacts/win/deploy/windows/archives/CSVTransferApp-win-selfcontained.zip
+            ./artifacts/win/deploy/windows/archives/CSVTransferApp-win-fx.zip
+            ./artifacts/linux/deploy/linux/archives/CSVTransferApp-linux-selfcontained.tar.gz
+            ./artifacts/linux/deploy/linux/archives/CSVTransferApp-linux-fx.tar.gz

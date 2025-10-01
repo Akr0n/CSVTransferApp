@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  csvtransfer:
+    build:
+      context: ./src/CSVTransferApp.Console
+      dockerfile: Dockerfile
+    image: csvtransferapp:latest
+    container_name: csvtransferapp
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config:ro
+      - ./logs:/app/logs
+    environment:
+      - DOTNET_ENVIRONMENT=Production
+    ports: []

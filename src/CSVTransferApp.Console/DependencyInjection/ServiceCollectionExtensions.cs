@@ -7,6 +7,7 @@ using CSVTransferApp.Data.Factories;
 using CSVTransferApp.Data.Configuration;
 using CSVTransferApp.Data.Services;
 using CSVTransferApp.Infrastructure.Security;
+using CSVTransferApp.Infrastructure.Health;
 using CSVTransferApp.Console.Parsers;
 
 namespace CSVTransferApp.Console.DependencyInjection;
@@ -38,6 +39,9 @@ public static class ServiceCollectionExtensions
         
         // Console services
         services.AddSingleton<ICommandLineParser, CommandLineParser>();
+
+    // Health check service - writes heartbeat to logs/health.txt
+    services.AddSingleton<IHealthCheckService, FileHealthCheckService>();
         
         // Application
         services.AddSingleton<Application>();

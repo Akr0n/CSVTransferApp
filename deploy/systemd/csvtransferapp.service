@@ -1,0 +1,17 @@
+[Unit]
+Description=CSV Transfer App Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/csvtransferapp
+ExecStart=/opt/csvtransferapp/CSVTransferApp
+Restart=on-failure
+RestartSec=5s
+Environment=DOTNET_ENVIRONMENT=Production
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=csvtransferapp
+
+[Install]
+WantedBy=multi-user.target

@@ -74,6 +74,22 @@ jobs:
             /p:PublishSingleFile=true `
             /p:IncludeNativeLibrariesForSelfExtract=true
 
+      - name: Copy Windows publish to deploy folder
+        run: |
+          New-Item -ItemType Directory -Path "./deploy/windows/publish" -Force
+          Copy-Item -Path "./publish/win-x64/*" -Destination "./deploy/windows/publish/" -Recurse -Force
+
+      - name: Publish Windows (framework-dependent DLL)
+        run: |
+          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj `
+            --configuration Release `
+            --output ./publish/win-fx
+
+      - name: Copy Windows FX publish to deploy folder
+        run: |
+          New-Item -ItemType Directory -Path "./deploy/windows/publish-fx" -Force
+          Copy-Item -Path "./publish/win-fx/*" -Destination "./deploy/windows/publish-fx/" -Recurse -Force
+
       - name: Publish Linux x64
         run: |
           dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj `
@@ -83,6 +99,48 @@ jobs:
             --output ./publish/linux-x64 `
             /p:PublishSingleFile=true `
             /p:IncludeNativeLibrariesForSelfExtract=true
+
+      - name: Copy Linux publish to deploy folder
+        run: |
+          New-Item -ItemType Directory -Path "./deploy/linux/publish" -Force
+          Copy-Item -Path "./publish/linux-x64/*" -Destination "./deploy/linux/publish/" -Recurse -Force
+
+      - name: Publish Linux (framework-dependent DLL)
+        run: |
+          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj `
+            --configuration Release `
+            --output ./publish/linux-fx
+
+      - name: Copy Linux FX publish to deploy folder
+        run: |
+          New-Item -ItemType Directory -Path "./deploy/linux/publish-fx" -Force
+          Copy-Item -Path "./publish/linux-fx/*" -Destination "./deploy/linux/publish-fx/" -Recurse -Force
+
+      - name: Upload publish artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish-artifacts-${{ github.run_id }}
+          path: |
+            deploy/windows/publish/**
+            deploy/windows/publish-fx/**
+            deploy/linux/publish/**
+            deploy/linux/publish-fx/**
+            deploy/windows/archives/**
+            deploy/linux/archives/**
+          retention-days: 7
+
+      - name: Create compressed archives (Windows)
+        run: |
+          New-Item -ItemType Directory -Path "./deploy/windows/archives" -Force
+          Compress-Archive -Path "./deploy/windows/publish/*" -DestinationPath "./deploy/windows/archives/CSVTransferApp-win-selfcontained.zip" -Force
+          Compress-Archive -Path "./deploy/windows/publish-fx/*" -DestinationPath "./deploy/windows/archives/CSVTransferApp-win-fx.zip" -Force
+
+      - name: Create compressed archives (Linux)
+        run: |
+          New-Item -ItemType Directory -Path "./deploy/linux/archives" -Force
+          tar -czf "./deploy/linux/archives/CSVTransferApp-linux-selfcontained.tar.gz" -C "./deploy/linux/publish" .
+          tar -czf "./deploy/linux/archives/CSVTransferApp-linux-fx.tar.gz" -C "./deploy/linux/publish-fx" .
 
       # ===== VERSIONING =====
       - name: Get last dev tag and increment
@@ -382,6 +440,11 @@ jobs:
           files: |
             ./releases/CSVTransferApp-${{ env.NEWVERSION }}-win-x64.zip
             ./releases/CSVTransferApp-${{ env.NEWVERSION }}-linux-x64.tar.gz
+            # publish archives (self-contained and framework-dependent)
+            ./deploy/windows/archives/CSVTransferApp-win-selfcontained.zip
+            ./deploy/windows/archives/CSVTransferApp-win-fx.zip
+            ./deploy/linux/archives/CSVTransferApp-linux-selfcontained.tar.gz
+            ./deploy/linux/archives/CSVTransferApp-linux-fx.tar.gz
 
       # ===== POST-BUILD TASKS =====
       - name: Upload build artifacts

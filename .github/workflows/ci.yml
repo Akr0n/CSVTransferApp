@@ -148,7 +148,7 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: test-results-${{ matrix.os || 'windows' }}
+          name: test-results-${{ runner.os }}
           path: |
             TestResults/*.trx
             coverage.opencover.xml
