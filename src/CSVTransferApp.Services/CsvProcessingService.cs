@@ -1,9 +1,10 @@
 using System.Text.Json;
 using CSVTransferApp.Core.Exceptions;
 using CSVTransferApp.Core.Models;
+using CSVTransferApp.Core.Interfaces;
 
 // Services/CsvProcessingService.cs
-public class CsvProcessingService
+public class CsvProcessingService : ICsvProcessingService
 {
     private readonly DatabaseService _databaseService;
     private readonly SftpService _sftpService;
@@ -30,13 +31,14 @@ public class CsvProcessingService
         _fileSemaphore = new SemaphoreSlim(maxFiles);
     }
 
-    public async Task ProcessJobsAsync(IEnumerable<TransferJob> jobs)
+    public async Task<List<ProcessingResult>> ProcessJobsAsync(IEnumerable<TransferJob> jobs)
     {
         var tasks = jobs.Select(ProcessJobAsync);
-        await Task.WhenAll(tasks);
+        var results = await Task.WhenAll(tasks);
+        return results.ToList();
     }
 
-    private async Task ProcessJobAsync(TransferJob job)
+    public async Task<ProcessingResult> ProcessJobAsync(TransferJob job)
     {
         await _connectionSemaphore.WaitAsync();
         await _fileSemaphore.WaitAsync();
@@ -75,11 +77,24 @@ public class CsvProcessingService
             await GenerateJobLogAsync(job, logFileName, headers, data.Rows.Count);
             
             _logger.LogInformation("Job completed for table {TableName}", job.TableName);
+            
+            return new ProcessingResult
+            {
+                IsSuccess = true,
+                TableName = job.TableName,
+                RecordsProcessed = data.Rows.Count,
+                LogFileName = logFileName
+            };
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing job for table {TableName}", job.TableName);
-            throw;
+            return new ProcessingResult
+            {
+                IsSuccess = false,
+                TableName = job.TableName,
+                ErrorMessage = ex.Message
+            };
         }
         finally
         {

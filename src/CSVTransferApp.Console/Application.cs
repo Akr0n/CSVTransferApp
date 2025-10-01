@@ -9,14 +9,14 @@ public class Application
 {
     private readonly ICsvProcessingService _processingService;
     private readonly ILoggerService _logger;
-    private readonly CommandLineParser _parser;
+    private readonly ICommandLineParser _parser;
     private readonly Dictionary<string, ICommand> _commands;
 
-    public Application(ICsvProcessingService processingService, ILoggerService logger)
+    public Application(ICsvProcessingService processingService, ILoggerService logger, ICommandLineParser parser)
     {
         _processingService = processingService;
         _logger = logger;
-        _parser = new CommandLineParser();
+        _parser = parser;
         
         _commands = new Dictionary<string, ICommand>(StringComparer.OrdinalIgnoreCase)
         {

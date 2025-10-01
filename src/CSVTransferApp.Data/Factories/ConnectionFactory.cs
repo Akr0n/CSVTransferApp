@@ -1,11 +1,13 @@
 using System.Data;
+using System.Data.SqlClient;
 using CSVTransferApp.Core.Models;
 using CSVTransferApp.Core.Constants;
+using CSVTransferApp.Core.Interfaces;
 using CSVTransferApp.Data.Services;
 
 namespace CSVTransferApp.Data.Factories;
 
-public class ConnectionFactory
+public class ConnectionFactory : IConnectionFactory
 {
     private readonly Dictionary<string, IDatabaseProvider> _providers;
 
@@ -26,12 +28,26 @@ public class ConnectionFactory
             throw new NotSupportedException($"Database provider '{config.Provider}' is not supported");
         }
 
-        //var connection = provider.CreateConnection(config);
-        //connection.ConnectionTimeout = config.ConnectionTimeout;
-        string connectionString = $"...;Connection Timeout={config.ConnectionTimeout};...";
-        var connection = new SqlConnection(connectionString); // oppure NpgsqlConnection, OracleConnection ecc.
+        return provider.CreateConnection(config);
+    }
 
-        return connection;
+    public IDbConnection CreateConnection(string connectionString, string providerName)
+    {
+        if (!_providers.TryGetValue(providerName, out var provider))
+        {
+            throw new NotSupportedException($"Database provider '{providerName}' is not supported");
+        }
+
+        return provider.CreateConnection(new DatabaseConnectionConfig
+        {
+            ConnectionString = connectionString,
+            Provider = providerName
+        });
+    }
+
+    public bool IsProviderSupported(string providerName)
+    {
+        return !string.IsNullOrEmpty(providerName) && _providers.ContainsKey(providerName);
     }
 
     public IDatabaseProvider GetProvider(string providerName)

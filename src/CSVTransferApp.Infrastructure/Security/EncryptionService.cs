@@ -1,9 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
+using CSVTransferApp.Core.Interfaces;
 
 namespace CSVTransferApp.Infrastructure.Security;
 
-public class EncryptionService
+public class EncryptionService : IEncryptionService
 {
     private readonly byte[] _key;
     private readonly byte[] _iv;

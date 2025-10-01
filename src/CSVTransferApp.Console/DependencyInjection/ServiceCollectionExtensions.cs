@@ -1,10 +1,13 @@
+using System.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using CSVTransferApp.Core.Interfaces;
 using CSVTransferApp.Services;
 using CSVTransferApp.Data.Factories;
 using CSVTransferApp.Data.Configuration;
+using CSVTransferApp.Data.Services;
 using CSVTransferApp.Infrastructure.Security;
+using CSVTransferApp.Console.Parsers;
 
 namespace CSVTransferApp.Console.DependencyInjection;
 
@@ -12,25 +15,29 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCsvTransferServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Core services
+        // Configuration
+        services.AddSingleton(configuration);
         services.AddSingleton<IConfigurationService, ConfigurationService>();
         services.AddSingleton<ILoggerService, LoggingService>();
         
+        // Infrastructure services
+        services.AddSingleton<IEncryptionService, EncryptionService>();
+        services.AddSingleton<ICredentialManager, CredentialManager>();
+        
         // Data services
-        services.AddSingleton<ConnectionFactory>();
-        services.AddSingleton<DataAdapterFactory>();
-        services.AddSingleton<DatabaseConnectionManager>();
-        services.AddSingleton<IDatabaseService, DatabaseService>();
+        services.AddScoped<IConnectionFactory, ConnectionFactory>();
+        services.AddScoped<DataAdapterFactory>();
+        services.AddScoped<DatabaseConnectionManager>();
+        services.AddScoped<IDatabaseService, DatabaseService>();
         
         // Business services
-        services.AddSingleton<ISftpService, SftpService>();
-        services.AddSingleton<ICsvProcessingService, CsvProcessingService>();
+        services.AddTransient<ISftpService, SftpService>();
+        services.AddTransient<ICsvProcessingService, CsvProcessingService>();
         services.AddSingleton<FileHeaderService>();
         services.AddSingleton<JobManagerService>();
         
-        // Infrastructure services
-        services.AddSingleton<EncryptionService>();
-        services.AddSingleton<CredentialManager>();
+        // Console services
+        services.AddSingleton<ICommandLineParser, CommandLineParser>();
         
         // Application
         services.AddSingleton<Application>();

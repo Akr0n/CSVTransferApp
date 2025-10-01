@@ -1,4 +1,11 @@
-// Program.cs
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using CSVTransferApp.Console.DependencyInjection;
+
+namespace CSVTransferApp.Console;
+
 public class Program
 {
     public static async Task<int> Main(string[] args)
@@ -13,18 +20,29 @@ public class Program
         ConfigureServices(services, configuration);
         
         using var serviceProvider = services.BuildServiceProvider();
-        var app = serviceProvider.GetRequiredService<CsvTransferApplication>();
+        var app = serviceProvider.GetRequiredService<Application>();
         
         return await app.RunAsync(args);
     }
 
     private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
     {
+        // Registra la configurazione
         services.AddSingleton(configuration);
-        services.AddLogging(builder => builder.AddConsole().AddFile("logs/app-.log"));
-        services.AddSingleton<DatabaseService>();
-        services.AddSingleton<SftpService>();
-        services.AddSingleton<CsvProcessingService>();
-        services.AddSingleton<CsvTransferApplication>();
+
+        // Configura il logging
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .CreateLogger();
+
+        services.AddLogging(builder =>
+        {
+            builder.AddConsole()
+                  .AddSerilog(dispose: true)
+                  .SetMinimumLevel(LogLevel.Information);
+        });
+
+        // Registra tutti i servizi dell'applicazione usando l'estensione
+        services.AddCsvTransferServices(configuration);
     }
 }

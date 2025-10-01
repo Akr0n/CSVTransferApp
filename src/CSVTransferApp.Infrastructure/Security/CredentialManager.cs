@@ -1,15 +1,21 @@
 using System.Security.Cryptography;
 using System.Text;
+using CSVTransferApp.Core.Interfaces;
 
 namespace CSVTransferApp.Infrastructure.Security;
 
-public class CredentialManager
+public class CredentialManager : ICredentialManager
 {
     private readonly EncryptionService _encryptionService;
 
     public CredentialManager(EncryptionService encryptionService)
     {
         _encryptionService = encryptionService;
+    }
+
+    public void SaveCredential(string key, string value)
+    {
+        StoreCredential(key, value);
     }
 
     public void StoreCredential(string key, string value)
@@ -20,12 +26,12 @@ public class CredentialManager
         Environment.SetEnvironmentVariable($"ENCRYPTED_{key}", encryptedValue, EnvironmentVariableTarget.User);
     }
 
-    public string? GetCredential(string key)
+    public string GetCredential(string key)
     {
         var encryptedValue = Environment.GetEnvironmentVariable($"ENCRYPTED_{key}", EnvironmentVariableTarget.User);
         
         if (string.IsNullOrEmpty(encryptedValue))
-            return null;
+            return string.Empty;
 
         return _encryptionService.Decrypt(encryptedValue);
     }
