@@ -173,3 +173,22 @@ jobs:
     name: Build Test (Linux)
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore --verbosity normal
+
+      - name: Build solution
+        run: dotnet build --configuration Release --no-restore --verbosity minimal
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
