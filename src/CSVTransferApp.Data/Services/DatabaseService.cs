@@ -21,14 +21,17 @@ public class DatabaseService
 
     public async Task<DataTable> ExecuteQueryAsync(string connectionName, string query)
     {
+        var section = _configuration.GetSection($"DatabaseConnections:{connectionName}");
+        string connectionString = section["ConnectionString"];
+        string providerName = section["Provider"];
+
         var connection = await GetConnectionAsync(connectionName);
         using var command = connection.CreateCommand();
         command.CommandText = query;
 
         _logger.LogInformation("Executing query on {Connection}: {Query}",
             connectionName, query);
-
-        //var adapter = CreateDataAdapter(connection, command);
+            
         var factory = DbProviderFactories.GetFactory(providerName);
         var adapter = factory.CreateDataAdapter();
         var dataTable = new DataTable();
