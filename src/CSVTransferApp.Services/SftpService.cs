@@ -21,7 +21,7 @@ public class SftpService : ISftpService
     {
         var client = GetSftpClient(connectionName);
         var config = _configuration.GetSection($"SftpConnections:{connectionName}");
-        var remotePath = Path.Combine(config["RemotePath"], fileName);
+        var remotePath = $"{config["RemotePath"]?.TrimEnd('/')}/{fileName}";
 
         _logger.LogInformation("Uploading {FileName} to {RemotePath}", fileName, remotePath);
 

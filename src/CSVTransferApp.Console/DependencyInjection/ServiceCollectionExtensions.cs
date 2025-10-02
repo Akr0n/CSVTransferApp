@@ -9,6 +9,7 @@ using CSVTransferApp.Data.Services;
 using CSVTransferApp.Infrastructure.Security;
 using CSVTransferApp.Infrastructure.Health;
 using CSVTransferApp.Console.Parsers;
+using Microsoft.Extensions.Logging;
 
 namespace CSVTransferApp.Console.DependencyInjection;
 
@@ -30,6 +31,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<DataAdapterFactory>();
         services.AddScoped<DatabaseConnectionManager>();
         services.AddScoped<IDatabaseService, DatabaseService>();
+        services.AddScoped<DatabaseService>();
         
         // Business services
         services.AddTransient<ISftpService, SftpService>();
@@ -39,6 +41,8 @@ public static class ServiceCollectionExtensions
         
         // Console services
         services.AddSingleton<ICommandLineParser, CommandLineParser>();
+        services.AddTransient<Application>();
+        services.AddSingleton<IHealthCheckService, FileHealthCheckService>();
 
     // Health check service - writes heartbeat to logs/health.txt
     services.AddSingleton<IHealthCheckService, FileHealthCheckService>();

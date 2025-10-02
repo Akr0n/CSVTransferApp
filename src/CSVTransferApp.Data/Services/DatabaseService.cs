@@ -5,8 +5,11 @@ using CSVTransferApp.Core.Interfaces;
 using System.Data.SqlClient;
 using Oracle.ManagedDataAccess.Client;
 using Npgsql;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
-// Services/DatabaseService.cs
+namespace CSVTransferApp.Data.Services;
+
 public class DatabaseService : IDatabaseService
 {
     private readonly IConfiguration _configuration;
@@ -44,10 +47,14 @@ public class DatabaseService : IDatabaseService
 
         _logger.LogInformation("Executing query on {Connection}: {Query}",
             connectionName, query);
-            
-        var factory = DbProviderFactories.GetFactory(providerName);
-        var adapter = factory.CreateDataAdapter() ?? 
-            throw new InvalidOperationException($"Failed to create data adapter for provider {providerName}");
+
+        DbDataAdapter adapter = providerName switch
+        {
+            "Oracle.ManagedDataAccess.Client" => new Oracle.ManagedDataAccess.Client.OracleDataAdapter((Oracle.ManagedDataAccess.Client.OracleCommand)command),
+            "Microsoft.Data.SqlClient" => new Microsoft.Data.SqlClient.SqlDataAdapter((Microsoft.Data.SqlClient.SqlCommand)command),
+            "Npgsql" => new Npgsql.NpgsqlDataAdapter((Npgsql.NpgsqlCommand)command),
+            _ => throw new NotSupportedException($"Provider {providerName} not supported for data adapter")
+        };
             
         var dataTable = new DataTable();
         adapter.Fill(dataTable);
@@ -165,9 +172,9 @@ public class DatabaseService : IDatabaseService
 
             return provider switch
             {
-                "Oracle.EntityFrameworkCore" => new OracleConnection(connectionString),
-                "Microsoft.EntityFrameworkCore.SqlServer" => new SqlConnection(connectionString),
-                "Npgsql.EntityFrameworkCore.PostgreSQL" => new NpgsqlConnection(connectionString),
+                "Oracle.ManagedDataAccess.Client" => new OracleConnection(connectionString),
+                "Microsoft.Data.SqlClient" => new SqlConnection(connectionString),
+                "Npgsql" => new NpgsqlConnection(connectionString),
                 _ => throw new NotSupportedException($"Provider {provider} not supported")
             };
         });

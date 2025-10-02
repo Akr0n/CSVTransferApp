@@ -1,11 +1,13 @@
+
 name: PROD - Build & Release .NET CSV Transfer Application
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - main
-    tags:
-      - 'v*.*.*'
+
 
 permissions:
   contents: write

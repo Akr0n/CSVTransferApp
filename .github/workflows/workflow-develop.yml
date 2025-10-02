@@ -150,54 +150,52 @@ jobs:
           # Recupera tutti i tag
           git fetch --tags
           
-          # Trova tutti i tag che corrispondono al pattern vX.Y.Z-dev
+          # Trova tutti i tag che corrispondono al pattern vX.Y.Z-dev*
           Write-Output "⚠️ DEBUG: Getting all tags..."
           $all_tags = git tag --list
           Write-Output "⚠️ DEBUG: Listing all tags: $($all_tags -join ', ')"
           
-          # Filtra solo i tag nel formato corretto vX.Y.Z-dev
+          # Filtra solo i tag nel formato corretto vX.Y.Z-dev*
           $dev_tags = @()
           foreach ($tag in $all_tags) {
-              if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev$') {
-                  $dev_tags += $tag
-              }
+            if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
+              $dev_tags += $tag
+            }
           }
-          
           Write-Output "⚠️ DEBUG: Found dev tags: $($dev_tags -join ', ')"
           
           if ($dev_tags.Count -eq 0) {
-              # Nessun tag dev esistente, inizia da 1.0.0-dev
-              Write-Output "⚠️ No existing dev tags found, starting from 1.0.0-dev"
-              $new_version = "1.0.0-dev"
+            # Nessun tag dev esistente, inizia da 1.0.0
+            Write-Output "⚠️ No existing dev tags found, starting from 1.0.0"
+            $new_version = "1.0.0"
           } else {
-              # Trova la versione più alta
-              $highest_version = @{major=0; minor=0; patch=0}
-              foreach ($tag in $dev_tags) {
-                  if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev$') {
-                      $major = [int]$matches[1]
-                      $minor = [int]$matches[2]
-                      $patch = [int]$matches[3]
-                      
-                      if (($major -gt $highest_version.major) -or
-                          ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or
-                          ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
-                          $highest_version.major = $major
-                          $highest_version.minor = $minor
-                          $highest_version.patch = $patch
-                      }
-                  }
+            # Trova la versione più alta
+            $highest_version = @{major=0; minor=0; patch=0}
+            foreach ($tag in $dev_tags) {
+              if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
+                $major = [int]$matches[1]
+                $minor = [int]$matches[2]
+                $patch = [int]$matches[3]
+                if (($major -gt $highest_version.major) -or
+                  ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or
+                  ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
+                  $highest_version.major = $major
+                  $highest_version.minor = $minor
+                  $highest_version.patch = $patch
+                }
               }
-              
-              # Incrementa la patch version
-              $new_patch = $highest_version.patch + 1
-              $new_version = "$($highest_version.major).$($highest_version.minor).$new_patch"
-              Write-Output "✅ Incremented from v$($highest_version.major).$($highest_version.minor).$($highest_version.patch)-dev to v$new_version-dev"
+            }
+            # Incrementa la patch version
+            $new_patch = $highest_version.patch + 1
+            $new_version = "$($highest_version.major).$($highest_version.minor).$new_patch"
+            Write-Output "✅ Incremented from v$($highest_version.major).$($highest_version.minor).$($highest_version.patch)-dev to v$new_version-dev"
           }
-          
-          $version_tag = "v$new_version-dev"
+          # Aggiungi data e short SHA per unicità
+          $date = Get-Date -Format 'yyyyMMdd'
+          $sha = (git rev-parse --short HEAD).Trim()
+          $version_tag = "v$new_version-dev-$date-$sha"
           Write-Output "✅ New version will be: $new_version"
           Write-Output "✅ New tag created: $version_tag"
-          
           # Setta le variabili di ambiente per GitHub Actions
           echo "NEWVERSION=$new_version" >> $env:GITHUB_ENV
           echo "VERSION_TAG=$version_tag" >> $env:GITHUB_ENV

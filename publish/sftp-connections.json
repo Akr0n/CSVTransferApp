@@ -1,0 +1,127 @@
+{
+  "ConnectionTemplates": {
+    "StandardSftp": {
+      "Port": 22,
+      "ConnectionTimeout": 30,
+      "AuthenticationMethods": [
+        "Password",
+        "PrivateKey",
+        "KeyboardInteractive"
+      ],
+      "SupportedFeatures": [
+        "Upload",
+        "Download",
+        "Delete",
+        "CreateDirectory",
+        "ListFiles"
+      ]
+    },
+    "SecureSftp": {
+      "Port": 22,
+      "ConnectionTimeout": 30,
+      "RequireSSL": true,
+      "VerifyHostKey": true,
+      "AuthenticationMethods": [
+        "PrivateKey",
+        "Certificate"
+      ],
+      "SupportedFeatures": [
+        "Upload",
+        "Download",
+        "Delete",
+        "CreateDirectory",
+        "ListFiles",
+        "SetPermissions"
+      ]
+    }
+  },
+  "ConnectionProfiles": {
+    "Development": {
+      "LocalTest": {
+        "Host": "localhost",
+        "Port": 2223,
+        "Username": "testuser",
+        "Password": "testpass",
+        "RemotePath": "/upload",
+        "ConnectionTimeout": 10,
+        "IsEnabled": true,
+        "UseCompression": false
+      },
+      "DockerSftp": {
+        "Host": "localhost",
+        "Port": 2223,
+        "Username": "sftpuser",
+        "Password": "sftppass",
+        "RemotePath": "/home/sftpuser/upload",
+        "ConnectionTimeout": 10,
+        "IsEnabled": true,
+        "UseCompression": false
+      }
+    },
+    "Staging": {
+      "StagingServer": {
+        "Host": "sftp-staging.company.com",
+        "Port": 22,
+        "Username": "csvtransfer_staging",
+        "Password": "${SFTP_STAGING_PASSWORD}",
+        "PrivateKeyPath": "./keys/staging_server_key.pem",
+        "Passphrase": "${SFTP_STAGING_KEY_PASSPHRASE}",
+        "RemotePath": "/staging/csv",
+        "ConnectionTimeout": 30,
+        "IsEnabled": true,
+        "UseCompression": true
+      }
+    },
+    "Production": {
+      "PrimaryServer": {
+        "Host": "sftp-primary.company.com",
+        "Port": 22,
+        "Username": "csvtransfer_prod",
+        "Password": "${SFTP_PRIMARY_PASSWORD}",
+        "PrivateKeyPath": "/etc/csvtransferapp/keys/primary_server_key.pem",
+        "Passphrase": "${SFTP_PRIMARY_KEY_PASSPHRASE}",
+        "RemotePath": "/data/csv/imports",
+        "ConnectionTimeout": 30,
+        "IsEnabled": true,
+        "UseCompression": true,
+        "BackupOnFailure": true,
+        "BackupServer": "SecondaryServer"
+      },
+      "SecondaryServer": {
+        "Host": "sftp-secondary.company.com",
+        "Port": 22,
+        "Username": "csvtransfer_prod",
+        "Password": "${SFTP_SECONDARY_PASSWORD}",
+        "PrivateKeyPath": "/etc/csvtransferapp/keys/secondary_server_key.pem",
+        "Passphrase": "${SFTP_SECONDARY_KEY_PASSPHRASE}",
+        "RemotePath": "/backup/csv/imports",
+        "ConnectionTimeout": 30,
+        "IsEnabled": true,
+        "UseCompression": true
+      }
+    }
+  },
+  "CommonSettings": {
+    "DefaultConnectionTimeout": 30,
+    "KeepAliveInterval": 60,
+    "MaxConcurrentConnections": 10,
+    "EnableConnectionReuse": true,
+    "RetryOnFailure": true,
+    "MaxRetryCount": 3,
+    "RetryDelay": 5000,
+    "BufferSize": 32768,
+    "EnableCompression": true,
+    "CompressionLevel": 6
+  },
+  "SecuritySettings": {
+    "RequireHostKeyVerification": true,
+    "AllowedHostKeyTypes": [
+      "ssh-rsa",
+      "ssh-ed25519",
+      "ecdsa-sha2-nistp256"
+    ],
+    "MinimumKeySize": 2048,
+    "EncryptPasswords": true,
+    "SecureKeyStorage": true
+  }
+}

@@ -1,10 +1,29 @@
 # Script per inizializzare l'ambiente locale di test
 
 # Verifica che Docker sia in esecuzione
-if (-not (Get-Process "Docker" -ErrorAction SilentlyContinue)) {
-    Write-Error "Docker non è in esecuzione. Avvia Docker Desktop e riprova."
-    exit 1
-}
+$maxAttempts = 12
+$attempts = 0
+$dockerRunning = $false
+
+Write-Host "Verifico che Docker sia pronto..."
+do {
+    try {
+        $null = docker ps
+        $dockerRunning = $true
+        break
+    }
+    catch {
+        $attempts++
+        if ($attempts -lt $maxAttempts) {
+            Write-Host "In attesa che Docker sia pronto... ($attempts/$maxAttempts)"
+            Start-Sleep -Seconds 5
+        }
+        else {
+            Write-Error "Docker non risponde dopo 60 secondi. Verifica che Docker Desktop sia in esecuzione."
+            exit 1
+        }
+    }
+} while ($attempts -lt $maxAttempts)
 
 # Crea le directory necessarie
 $directories = @(

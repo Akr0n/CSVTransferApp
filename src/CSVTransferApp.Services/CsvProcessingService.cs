@@ -6,16 +6,16 @@ using CSVTransferApp.Core.Interfaces;
 namespace CSVTransferApp.Services;
 public class CsvProcessingService : ICsvProcessingService
 {
-    private readonly DatabaseService _databaseService;
-    private readonly SftpService _sftpService;
+    private readonly IDatabaseService _databaseService;
+    private readonly ISftpService _sftpService;
     private readonly ILogger<CsvProcessingService> _logger;
     private readonly IConfiguration _configuration;
     private readonly SemaphoreSlim _connectionSemaphore;
     private readonly SemaphoreSlim _fileSemaphore;
 
     public CsvProcessingService(
-        DatabaseService databaseService,
-        SftpService sftpService,
+        IDatabaseService databaseService,
+        ISftpService sftpService,
         ILogger<CsvProcessingService> logger,
         IConfiguration configuration)
     {

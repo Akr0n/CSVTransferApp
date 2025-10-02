@@ -1,0 +1,112 @@
+{
+  "ConnectionTemplates": {
+    "Oracle": {
+      "Provider": "Oracle.EntityFrameworkCore",
+      "ConnectionStringTemplate": "Data Source={host}:{port}/{serviceName};User Id={username};Password={password};",
+      "DefaultPort": 1521,
+      "DefaultTimeout": 30,
+      "SupportedFeatures": [
+        "Transactions",
+        "StoredProcedures",
+        "BulkInsert",
+        "AdvancedQueries"
+      ]
+    },
+    "SqlServer": {
+      "Provider": "Microsoft.EntityFrameworkCore.SqlServer",
+      "ConnectionStringTemplate": "Server={host},{port};Database={database};User Id={username};Password={password};TrustServerCertificate=true;",
+      "DefaultPort": 1433,
+      "DefaultTimeout": 30,
+      "SupportedFeatures": [
+        "Transactions",
+        "StoredProcedures",
+        "BulkInsert",
+        "AdvancedQueries",
+        "WindowsFunctions"
+      ]
+    },
+    "PostgreSQL": {
+      "Provider": "Npgsql.EntityFrameworkCore.PostgreSQL",
+      "ConnectionStringTemplate": "Host={host};Port={port};Database={database};Username={username};Password={password};",
+      "DefaultPort": 5432,
+      "DefaultTimeout": 30,
+      "SupportedFeatures": [
+        "Transactions",
+        "StoredProcedures",
+        "BulkInsert",
+        "AdvancedQueries",
+        "JsonSupport"
+      ]
+    }
+  },
+  "ConnectionProfiles": {
+    "Development": {
+      "Oracle": {
+        "Host": "localhost",
+        "Port": 1521,
+        "ServiceName": "XEPDB1",
+        "Username": "csvapp_dev",
+        "Password": "devpass123",
+        "MaxPoolSize": 20,
+        "IsEnabled": true
+      },
+      "SqlServer": {
+        "Host": "localhost",
+        "Port": 1433,
+        "Database": "CSVTransferDB_Dev",
+        "Username": "csvapp_dev",
+        "Password": "devpass123",
+        "MaxPoolSize": 20,
+        "IsEnabled": true
+      },
+      "PostgreSQL": {
+        "Host": "localhost",
+        "Port": 5432,
+        "Database": "csvtransferdb_dev",
+        "Username": "csvapp_dev",
+        "Password": "devpass123",
+        "MaxPoolSize": 20,
+        "IsEnabled": true
+      }
+    },
+    "Production": {
+      "Oracle": {
+        "Host": "prod-oracle.internal",
+        "Port": 1521,
+        "ServiceName": "PRODDB",
+        "Username": "csvapp_prod",
+        "Password": "${ORACLE_PASSWORD}",
+        "MaxPoolSize": 200,
+        "IsEnabled": true
+      },
+      "SqlServer": {
+        "Host": "prod-sqlserver.internal",
+        "Port": 1433,
+        "Database": "CSVTransferDB_Prod",
+        "Username": "csvapp_prod",
+        "Password": "${SQLSERVER_PASSWORD}",
+        "MaxPoolSize": 200,
+        "IsEnabled": true
+      },
+      "PostgreSQL": {
+        "Host": "prod-postgres.internal",
+        "Port": 5432,
+        "Database": "csvtransferdb_prod",
+        "Username": "csvapp_prod",
+        "Password": "${POSTGRES_PASSWORD}",
+        "MaxPoolSize": 200,
+        "IsEnabled": true
+      }
+    }
+  },
+  "CommonSettings": {
+    "DefaultCommandTimeout": 300,
+    "DefaultConnectionTimeout": 30,
+    "EnableConnectionPooling": true,
+    "EnableRetryOnFailure": true,
+    "MaxRetryCount": 3,
+    "MaxRetryDelay": 30,
+    "EnableSensitiveDataLogging": false,
+    "EnableDetailedErrors": false
+  }
+}
