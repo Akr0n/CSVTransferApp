@@ -21,7 +21,7 @@ jobs:
           distribution: 'zulu' # Required for SonarCloud
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Disable shallow clones for better analysis relevancy
 
@@ -175,7 +175,7 @@ jobs:
     if: github.event_name != 'pull_request'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
