@@ -86,6 +86,27 @@ jobs:
           }
 
       # ===== SONAR ANALYSIS + BUILD + TEST =====
+      - name: Debug Environment Variables
+        shell: powershell
+        run: |
+          Write-Host "Repository Owner: ${{ github.repository_owner }}"
+          Write-Host "Repository Name: ${{ github.event.repository.name }}"
+          if ($env:SONAR_TOKEN) { 
+              Write-Host "✅ SONAR_TOKEN is set"
+              Write-Host "Token length: $($env:SONAR_TOKEN.Length) characters"
+          } else { 
+              Write-Host "❌ SONAR_TOKEN is NOT set"
+          }
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Verify SonarCloud Configuration
+        shell: powershell
+        run: |
+          Write-Host "🔍 Verifying SonarCloud configuration..."
+          Write-Host "Project Key: ${{ github.repository_owner }}_${{ github.event.repository.name }}"
+          Write-Host "Organization: ${{ github.repository_owner }}"
+
       - name: Begin SonarCloud analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
