@@ -166,7 +166,8 @@ jobs:
           Write-Output "- **Branch**: ${{ github.ref_name }}" >> $env:GITHUB_STEP_SUMMARY
           Write-Output "- **Commit**: ${{ github.sha }}" >> $env:GITHUB_STEP_SUMMARY
           Write-Output "" >> $env:GITHUB_STEP_SUMMARY
-          Write-Output "🔗 **[View Results on SonarCloud](https://sonarcloud.io/project/overview?id=${{ github.repository_owner }}_${{ github.event.repository.name }})**" >> $env:GITHUB_STEP_SUMMARY
+          $sonarUrl = 'https://sonarcloud.io/project/overview?id=${{ github.repository_owner }}_${{ github.event.repository.name }}'
+          Write-Output "🔗 **[View Results on SonarCloud]($sonarUrl)**" >> $env:GITHUB_STEP_SUMMARY
 
   # ===== JOB PARALLELO PER LINUX (opzionale) =====
   build-linux:
