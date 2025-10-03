@@ -17,20 +17,8 @@ jobs:
       - name: Check SONAR_TOKEN
         shell: powershell
         run: |
-          $token = '${{ secrets.SONAR_TOKEN }}'
-          if ([string]::IsNullOrEmpty($token)) {
-              Write-Error @"
-              SONAR_TOKEN is not configured in your repository secrets.
-              
-              Please follow these steps to configure it:
-              1. Go to your repository settings
-              2. Navigate to Secrets and variables > Actions
-              3. Click 'New repository secret'
-              4. Name: SONAR_TOKEN
-              5. Value: Your SonarCloud token from SonarCloud.io
-              
-              For more information, see: https://docs.github.com/en/actions/security-guides/encrypted-secrets
-              "@
+          if ([string]::IsNullOrEmpty('${{ secrets.SONAR_TOKEN }}')) {
+              Write-Error "SONAR_TOKEN is not configured in repository secrets. Please add it in Settings > Secrets > Actions."
               exit 1
           }
           Write-Host "SONAR_TOKEN is configured correctly"
@@ -130,19 +118,14 @@ jobs:
           Write-Host "Organization: ${{ github.repository_owner }}"
 
       - name: Begin SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          $sonarToken = '${{ secrets.SONAR_TOKEN }}'
-          if ([string]::IsNullOrEmpty($sonarToken)) {
-              Write-Error "SONAR_TOKEN is not set. Please configure it in your repository secrets."
-              exit 1
-          }
-          
-          Write-Host "Starting SonarCloud Analysis..."
           .\.sonar\scanner\dotnet-sonarscanner begin `
             /k:"${{ github.repository_owner }}_${{ github.event.repository.name }}" `
             /o:"${{ github.repository_owner }}" `
-            /d:sonar.login="$sonarToken" `
+            /d:sonar.token=$env:SONAR_TOKEN `
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/logs/**,**/temp/**,**/*.Designer.cs" `
             /d:sonar.coverage.exclusions="**/Tests/**,**/TestData/**,**/Mocks/**" `
@@ -183,16 +166,11 @@ jobs:
           }
 
       - name: End SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          $sonarToken = '${{ secrets.SONAR_TOKEN }}'
-          if ([string]::IsNullOrEmpty($sonarToken)) {
-              Write-Error "SONAR_TOKEN is not set. Please configure it in your repository secrets."
-              exit 1
-          }
-          
-          Write-Host "Completing SonarCloud Analysis..."
-          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.login="$sonarToken"
+          .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token=$env:SONAR_TOKEN
 
       # ===== UPLOAD ARTIFACTS =====
       - name: Upload test results
