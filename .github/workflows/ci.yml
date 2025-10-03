@@ -89,13 +89,14 @@ jobs:
       - name: Debug Environment Variables
         shell: powershell
         run: |
+          Write-Host "=== Debug Environment Variables ==="
           Write-Host "Repository Owner: ${{ github.repository_owner }}"
           Write-Host "Repository Name: ${{ github.event.repository.name }}"
           if ($env:SONAR_TOKEN) { 
-              Write-Host "✅ SONAR_TOKEN is set"
+              Write-Host "[OK] SONAR_TOKEN is set"
               Write-Host "Token length: $($env:SONAR_TOKEN.Length) characters"
           } else { 
-              Write-Host "❌ SONAR_TOKEN is NOT set"
+              Write-Host "[ERROR] SONAR_TOKEN is NOT set"
           }
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -103,7 +104,7 @@ jobs:
       - name: Verify SonarCloud Configuration
         shell: powershell
         run: |
-          Write-Host "🔍 Verifying SonarCloud configuration..."
+          Write-Host "=== Verifying SonarCloud Configuration ==="
           Write-Host "Project Key: ${{ github.repository_owner }}_${{ github.event.repository.name }}"
           Write-Host "Organization: ${{ github.repository_owner }}"
 
