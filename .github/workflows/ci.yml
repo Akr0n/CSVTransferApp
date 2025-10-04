@@ -124,26 +124,21 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          $workspaceDir = $env:GITHUB_WORKSPACE
-          Write-Host "Setting project base directory to: $workspaceDir"
-          
           # Rimuovi il file sonar-project.properties se esiste
           if (Test-Path "sonar-project.properties") {
               Remove-Item "sonar-project.properties" -Force
               Write-Host "Removed sonar-project.properties file"
           }
           
+          Write-Host "Starting SonarCloud analysis..."
           .\.sonar\scanner\dotnet-sonarscanner begin `
             /k:"${{ github.repository_owner }}_${{ github.event.repository.name }}" `
             /o:"${{ github.repository_owner }}" `
             /d:sonar.token=$env:SONAR_TOKEN `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.projectBaseDir="$workspaceDir" `
-            /d:sonar.working.directory=".\.sonar" `
             /d:sonar.exclusions="**/bin/**,**/obj/**,**/logs/**,**/temp/**,**/*.Designer.cs" `
             /d:sonar.coverage.exclusions="**/Tests/**,**/TestData/**,**/Mocks/**" `
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
-            /d:sonar.verbose=true
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
 
       - name: Restore dependencies
         run: dotnet restore --verbosity normal
