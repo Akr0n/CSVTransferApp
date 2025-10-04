@@ -1,12 +1,14 @@
 
 name: PROD - Build & Release .NET CSV Transfer Application
 
+
 on:
   pull_request:
     types:
       - closed
     branches:
       - main
+
 
 
 permissions:
@@ -33,6 +35,49 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Create and push production tag from latest dev version
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+        shell: pwsh
+        run: |
+          git fetch --tags
+          $all_tags = git tag --list
+          $dev_tags = @()
+          foreach ($tag in $all_tags) {
+            if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
+              $dev_tags += $tag
+            }
+          }
+          if ($dev_tags.Count -eq 0) {
+            $new_version = "1.0.0"
+          } else {
+            $highest_version = @{major=0; minor=0; patch=0}
+            foreach ($tag in $dev_tags) {
+              if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
+                $major = [int]$matches[1]
+                $minor = [int]$matches[2]
+                $patch = [int]$matches[3]
+                if (($major -gt $highest_version.major) -or
+                  ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or
+                  ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
+                  $highest_version.major = $major
+                  $highest_version.minor = $minor
+                  $highest_version.patch = $patch
+                }
+              }
+            }
+            $new_version = "$($highest_version.major).$($highest_version.minor).$highest_version.patch"
+          }
+          $tag = "v$new_version"
+          # Se il tag esiste già, non fare nulla
+          if ($all_tags -contains $tag) {
+            Write-Output "Tag $tag already exists, skipping."
+            exit 0
+          }
+          git config user.email "csvtransferapp.bot@gmail.com"
+          git config user.name "CSV Transfer App Bot"
+          git tag $tag
+          git push origin $tag
+
       - name: Setup .NET 9.0
         uses: actions/setup-dotnet@v5
         with:
@@ -54,19 +99,21 @@ jobs:
         run: dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal
 
       - name: Publish application
+        shell: pwsh
         run: |
-          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj \
-            --configuration Release \
-            --runtime ${{ matrix.runtime }} \
-            --self-contained true \
-            --output ./publish/${{ matrix.artifact }} \
-            /p:PublishSingleFile=true \
+          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj `
+            --configuration Release `
+            --runtime ${{ matrix.runtime }} `
+            --self-contained true `
+            --output ./publish/${{ matrix.artifact }} `
+            /p:PublishSingleFile=true `
             /p:IncludeNativeLibrariesForSelfExtract=true
 
       - name: Publish framework-dependent (DLL)
+        shell: pwsh
         run: |
-          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj \
-            --configuration Release \
+          dotnet publish src/CSVTransferApp.Console/CSVTransferApp.Console.csproj `
+            --configuration Release `
             --output ./publish/${{ matrix.artifact }}-fx
 
       - name: Copy publish to deploy folder and create archives (Windows)
