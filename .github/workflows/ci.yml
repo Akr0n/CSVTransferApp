@@ -61,8 +61,9 @@ jobs:
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
         run: |
-          New-Item -Path ~\.sonar\scanner -ItemType Directory -Force
-          dotnet tool update dotnet-sonarscanner --tool-path ~\.sonar\scanner
+          $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
+          New-Item -Path $scannerDir -ItemType Directory -Force
+          dotnet tool update dotnet-sonarscanner --tool-path $scannerDir
 
       - name: Install dotnet-coverage
         shell: powershell
@@ -99,7 +100,9 @@ jobs:
               Write-Host "Removed sonar-project.properties file"
           }
           
-          $scannerPath = Join-Path $env:USERPROFILE ".sonar\scanner\dotnet-sonarscanner.exe"
+          $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
+          $scannerPath = Join-Path $scannerDir "dotnet-sonarscanner"
+          Write-Host "Using scanner at: $scannerPath"
           & $scannerPath begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
 
       - name: Restore dependencies
@@ -141,7 +144,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          $scannerPath = Join-Path $env:USERPROFILE ".sonar\scanner\dotnet-sonarscanner.exe"
+          $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
+          $scannerPath = Join-Path $scannerDir "dotnet-sonarscanner"
+          Write-Host "Using scanner at: $scannerPath"
           & $scannerPath end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       # ===== UPLOAD ARTIFACTS =====
