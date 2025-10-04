@@ -93,6 +93,12 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
+          # Remove sonar-project.properties file if it exists
+          if (Test-Path "sonar-project.properties") {
+              Remove-Item "sonar-project.properties" -Force
+              Write-Host "Removed sonar-project.properties file"
+          }
+          
           ${{ runner.temp }}\scanner\dotnet-sonarscanner begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
 
       - name: Restore dependencies
