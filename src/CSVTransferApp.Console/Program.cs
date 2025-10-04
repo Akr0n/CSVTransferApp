@@ -3,16 +3,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using CSVTransferApp.Console.DependencyInjection;
+using CSVTransferApp.Infrastructure.Configuration;
 
 namespace CSVTransferApp.Console;
 
-public class Program
+public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
         var configuration = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
             .AddEnvironmentVariables()
+            .AddEnvironmentVariablePlaceholderResolver(skipUnresolved: false)
             .AddCommandLine(args)
             .Build();
 
