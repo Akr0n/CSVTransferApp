@@ -99,7 +99,8 @@ jobs:
               Write-Host "Removed sonar-project.properties file"
           }
           
-          ~\.sonar\scanner\dotnet-sonarscanner begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          $scannerPath = Join-Path $env:USERPROFILE ".sonar\scanner\dotnet-sonarscanner.exe"
+          & $scannerPath begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
 
       - name: Restore dependencies
         run: dotnet restore --verbosity normal
@@ -140,7 +141,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          ~\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          $scannerPath = Join-Path $env:USERPROFILE ".sonar\scanner\dotnet-sonarscanner.exe"
+          & $scannerPath end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
       # ===== UPLOAD ARTIFACTS =====
       - name: Upload test results
