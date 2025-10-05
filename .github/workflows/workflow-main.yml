@@ -21,7 +21,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
-      actions: write
+      actions: read
+      checks: read
+      statuses: read
+      pull-requests: read
       
     strategy:
       matrix:
@@ -35,29 +38,56 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
 
       - name: Wait for CodeQL Analysis to Complete
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-        uses: fountainhead/action-wait-for-check@v1.2.0
-        id: wait-for-codeql
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: "CodeQL"
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
-          intervalSeconds: 30
-          timeoutSeconds: 1200 # 20 minuti timeout
-        continue-on-error: true # Continue even if CodeQL check fails/times out
-
-      - name: Alternative Wait Strategy (PowerShell)
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && steps.wait-for-codeql.outcome == 'failure'
         shell: pwsh
         run: |
-          Write-Host "⚠️ CodeQL wait action failed, using alternative strategy..." -ForegroundColor Yellow
-          Write-Host "🕐 Waiting 5 minutes for CodeQL to complete..." -ForegroundColor Cyan
-          Start-Sleep -Seconds 300  # Wait 5 minutes
+          Write-Host "🕐 Waiting for CodeQL analysis to complete..." -ForegroundColor Cyan
+          $maxWaitMinutes = 20
+          $checkInterval = 30
+          $maxIterations = ($maxWaitMinutes * 60) / $checkInterval
+          $iteration = 0
+          $codeqlComplete = $false
+          
+          while ($iteration -lt $maxIterations -and -not $codeqlComplete) {
+            try {
+              Write-Host "🔍 Checking CodeQL status (attempt $($iteration + 1)/$maxIterations)..." -ForegroundColor Yellow
+              
+              # Check if CodeQL workflow is complete
+              $response = gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | select(.name=="CodeQL" and .head_sha=="${{ github.event.pull_request.merge_commit_sha || github.sha }}") | .status'
+              
+              if ($response -eq "completed") {
+                Write-Host "✅ CodeQL analysis completed!" -ForegroundColor Green
+                $codeqlComplete = $true
+              } else {
+                Write-Host "⏳ CodeQL still running, waiting $checkInterval seconds..." -ForegroundColor Yellow
+                Start-Sleep -Seconds $checkInterval
+                $iteration++
+              }
+            }
+            catch {
+              Write-Host "⚠️ Error checking CodeQL status: $($_.Exception.Message)" -ForegroundColor Yellow
+              Write-Host "📝 Continuing with fallback wait..." -ForegroundColor Cyan
+              break
+            }
+          }
+          
+          if (-not $codeqlComplete) {
+            Write-Host "⏰ CodeQL wait timeout reached, proceeding..." -ForegroundColor Yellow
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Additional Safety Wait
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+        shell: pwsh
+        run: |
+          Write-Host "🛡️ Additional safety wait for any remaining checks..." -ForegroundColor Cyan
+          Start-Sleep -Seconds 60  # Additional 1 minute wait
 
       - name: Create and push production tag from latest dev version
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
@@ -133,12 +163,12 @@ jobs:
           }
 
       - name: Setup .NET 9.0
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@3e891b0cb619bf60e2c25674b222b8940e2c1c25 # v4.1.0
         with:
           dotnet-version: '9.0.x'
 
       - name: Cache NuGet packages
-        uses: actions/cache@v4
+        uses: actions/cache@6849a6489940f00c2f30c0fb92c6274307ccb58a # v4.1.2
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
@@ -207,7 +237,7 @@ jobs:
           tar -czf CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.tar.gz -C publish/${{ matrix.artifact }} .
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: csvtransferapp-${{ matrix.artifact }}
           path: |
@@ -224,23 +254,23 @@ jobs:
       
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: csvtransferapp-win-x64
           path: ./artifacts/win
 
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
         with:
           name: csvtransferapp-linux-x64
           path: ./artifacts/linux
 
       - name: Create and push release
         id: create_release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v2.0.8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
