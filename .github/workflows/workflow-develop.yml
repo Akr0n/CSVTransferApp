@@ -17,12 +17,12 @@ jobs:
     steps:
       # ===== CHECKOUT & SETUP =====
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0 # Importante per avere tutti i tag
 
       - name: Setup .NET 9.0
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '9.0.x'
           
