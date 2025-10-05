@@ -1,6 +1,4 @@
-
-name: PROD - Build & Release .NET CSV Transfer Application
-
+name: PROD - Build & Release .NET CSV Transfer App
 
 on:
   pull_request:
@@ -8,9 +6,11 @@ on:
       - closed
     branches:
       - main
+  push:
+    tags:
+      - 'v*'
 
-
-
+# Security: Explicit permissions for CodeQL compliance
 permissions:
   contents: write
   pull-requests: read
@@ -19,6 +19,10 @@ permissions:
 jobs:
   build-release:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+      actions: write
+      
     strategy:
       matrix:
         include:
@@ -65,10 +69,9 @@ jobs:
                 }
               }
             }
-            $new_version = "$($highest_version.major).$($highest_version.minor).$highest_version.patch"
+            $new_version = "$($highest_version.major).$($highest_version.minor).$($highest_version.patch)"
           }
           $tag = "v$new_version"
-          # Se il tag esiste già, non fare nulla
           if ($all_tags -contains $tag) {
             Write-Output "Tag $tag already exists, skipping."
             exit 0
@@ -125,7 +128,6 @@ jobs:
           New-Item -ItemType Directory -Path "./deploy/windows/archives" -Force
           Copy-Item -Path "./publish/win-x64/*" -Destination "./deploy/windows/publish/" -Recurse -Force
           Copy-Item -Path "./publish/win-x64-fx/*" -Destination "./deploy/windows/publish-fx/" -Recurse -Force -ErrorAction SilentlyContinue
-          # create zip archives
           Compress-Archive -Path "./deploy/windows/publish/*" -DestinationPath "./deploy/windows/archives/CSVTransferApp-win-selfcontained.zip" -Force
           Compress-Archive -Path "./deploy/windows/publish-fx/*" -DestinationPath "./deploy/windows/archives/CSVTransferApp-win-fx.zip" -Force
 
@@ -166,6 +168,9 @@ jobs:
     needs: build-release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v5
