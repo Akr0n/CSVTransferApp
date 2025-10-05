@@ -1,36 +1,16 @@
+name: PROD - Build & Release .NET CSV Transfer App
 
-name: PROD - Build & Release .NET CSV Transfer Ap          } else {
-            # Find the highest version from dev tags
-            $version_numbers = @()
-            foreach ($tag in $dev_tags) {
-              if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
-                $major = [int]$matches[1]
-                $minor = [int]$matches[2]
-                $patch = [int]$matches[3]
-                $version_numbers += [PSCustomObject]@{
-                  Major = $major
-                  Minor = $minor  
-                  Patch = $patch
-                  FullVersion = "$major.$minor.$patch"
-                }
-              }
-            }
-            # Sort and get the highest version
-            $highest = $version_numbers | Sort-Object Major,Minor,Patch -Descending | Select-Object -First 1
-            if ($highest) {
-              $new_version = $highest.FullVersion
-            } else {
-              $new_version = "1.0.0"
-            }
-          }
+on:
   pull_request:
     types:
       - closed
     branches:
       - main
+  push:
+    tags:
+      - 'v*'
 
-
-
+# Security: Explicit permissions for CodeQL compliance
 permissions:
   contents: write
   pull-requests: read
@@ -39,6 +19,10 @@ permissions:
 jobs:
   build-release:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+      actions: write
+      
     strategy:
       matrix:
         include:
@@ -85,10 +69,9 @@ jobs:
                 }
               }
             }
-            $new_version = "$($highest_version.major).$($highest_version.minor).$highest_version.patch"
+            $new_version = "$($highest_version.major).$($highest_version.minor).$($highest_version.patch)"
           }
           $tag = "v$new_version"
-          # Se il tag esiste già, non fare nulla
           if ($all_tags -contains $tag) {
             Write-Output "Tag $tag already exists, skipping."
             exit 0
@@ -145,7 +128,6 @@ jobs:
           New-Item -ItemType Directory -Path "./deploy/windows/archives" -Force
           Copy-Item -Path "./publish/win-x64/*" -Destination "./deploy/windows/publish/" -Recurse -Force
           Copy-Item -Path "./publish/win-x64-fx/*" -Destination "./deploy/windows/publish-fx/" -Recurse -Force -ErrorAction SilentlyContinue
-          # create zip archives
           Compress-Archive -Path "./deploy/windows/publish/*" -DestinationPath "./deploy/windows/archives/CSVTransferApp-win-selfcontained.zip" -Force
           Compress-Archive -Path "./deploy/windows/publish-fx/*" -DestinationPath "./deploy/windows/archives/CSVTransferApp-win-fx.zip" -Force
 
@@ -186,6 +168,9 @@ jobs:
     needs: build-release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v4
