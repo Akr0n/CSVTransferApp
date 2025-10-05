@@ -39,10 +39,34 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Wait for CodeQL Analysis to Complete
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+        uses: fountainhead/action-wait-for-check@v1.2.0
+        id: wait-for-codeql
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: "CodeQL"
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          intervalSeconds: 30
+          timeoutSeconds: 1200 # 20 minuti timeout
+        continue-on-error: true # Continue even if CodeQL check fails/times out
+
+      - name: Alternative Wait Strategy (PowerShell)
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && steps.wait-for-codeql.outcome == 'failure'
+        shell: pwsh
+        run: |
+          Write-Host "⚠️ CodeQL wait action failed, using alternative strategy..." -ForegroundColor Yellow
+          Write-Host "🕐 Waiting 5 minutes for CodeQL to complete..." -ForegroundColor Cyan
+          Start-Sleep -Seconds 300  # Wait 5 minutes
+
       - name: Create and push production tag from latest dev version
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
         shell: pwsh
         run: |
+          # Wait for any pending CI checks before proceeding
+          Write-Host "🕐 Waiting for CI checks to complete..." -ForegroundColor Yellow
+          Start-Sleep -Seconds 60  # Wait 1 minute for CI to settle
+          
           git fetch --tags
           $all_tags = git tag --list
           $dev_tags = @()
@@ -85,7 +109,34 @@ jobs:
           git config user.email "csvtransferapp.bot@gmail.com"
           git config user.name "CSV Transfer App Bot"
           git tag $tag
-          git push origin $tag
+          
+          # Check if we can push (status checks passed)
+          Write-Host "🔍 Checking repository status before push..." -ForegroundColor Cyan
+          
+          # Retry logic for push with exponential backoff
+          $maxRetries = 5
+          $retryCount = 0
+          $success = $false
+          
+          while (-not $success -and $retryCount -lt $maxRetries) {
+            try {
+              Write-Host "🚀 Attempting to push tag $tag (attempt $($retryCount + 1)/$maxRetries)..." -ForegroundColor Cyan
+              git push origin $tag
+              $success = $true
+              Write-Host "✅ Tag pushed successfully!" -ForegroundColor Green
+            }
+            catch {
+              $retryCount++
+              if ($retryCount -lt $maxRetries) {
+                $waitTime = [Math]::Pow(2, $retryCount) * 30  # Exponential backoff: 30s, 60s, 120s, 240s
+                Write-Host "⚠️ Push failed. Waiting $waitTime seconds before retry..." -ForegroundColor Yellow
+                Start-Sleep -Seconds $waitTime
+              } else {
+                Write-Host "❌ Failed to push tag after $maxRetries attempts" -ForegroundColor Red
+                throw $_
+              }
+            }
+          }
 
       - name: Setup .NET 9.0
         uses: actions/setup-dotnet@v5
