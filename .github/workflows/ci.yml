@@ -27,7 +27,6 @@ jobs:
 
     steps:
       # ===== SETUP =====
-      # ===== SETUP =====
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -116,7 +115,7 @@ jobs:
           $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
           $scannerPath = Join-Path $scannerDir "dotnet-sonarscanner"
           Write-Host "Using scanner at: $scannerPath"
-          & $scannerPath begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+          & $scannerPath begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io"
 
       - name: Restore dependencies
         run: dotnet restore --verbosity normal
@@ -160,7 +159,7 @@ jobs:
           $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
           $scannerPath = Join-Path $scannerDir "dotnet-sonarscanner"
           Write-Host "Using scanner at: $scannerPath"
-          & $scannerPath end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          & $scannerPath end /d:sonar.token="$env:SONAR_TOKEN"
 
       # ===== UPLOAD ARTIFACTS =====
       - name: Upload test results
