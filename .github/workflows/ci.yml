@@ -190,11 +190,10 @@ jobs:
           "@
           $summary | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
 
-  # ===== JOB PARALLELO PER LINUX (opzionale) =====
+  # ===== JOB PARALLELO PER LINUX =====
   build-linux:
     name: Build Test (Linux)
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request'
     permissions:
       contents: read          # Read source code only
       checks: write          # Write test results
