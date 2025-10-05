@@ -7,10 +7,23 @@ on:
     types: [opened, synchronize, reopened]
     branches: [ main, develop ]
 
+# Security: Explicit permissions for CodeQL compliance
+permissions:
+  contents: read          # Read repository contents
+  actions: read          # Read workflow run information  
+  checks: write          # Write check results
+  pull-requests: write   # Comment on PRs with analysis results
+  security-events: write # Write security analysis results
+
 jobs:
   sonarcloud:
     name: Build, Test & SonarCloud Analysis
     runs-on: windows-latest
+    permissions:
+      contents: read          # Read source code
+      checks: write          # Write test results and checks
+      pull-requests: write   # Comment on PRs
+      security-events: write # Upload security analysis results
 
     steps:
       # ===== SETUP =====
@@ -182,6 +195,10 @@ jobs:
     name: Build Test (Linux)
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request'
+    permissions:
+      contents: read          # Read source code only
+      checks: write          # Write test results
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
