@@ -69,7 +69,6 @@ jobs:
                 }
               }
             }
-<<<<<<< HEAD
             # Sort and get the highest version
             $highest = $version_numbers | Sort-Object Major,Minor,Patch -Descending | Select-Object -First 1
             if ($highest) {
@@ -77,9 +76,6 @@ jobs:
             } else {
               $new_version = "1.0.0"
             }
-=======
-            $new_version = "$($highest_version.major).$($highest_version.minor).$($highest_version.patch)"
->>>>>>> cdbe124d72989803efba4a92117aa758d6d5038a
           }
           $tag = "v$new_version"
           if ($all_tags -contains $tag) {
