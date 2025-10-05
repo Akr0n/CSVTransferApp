@@ -7,7 +7,7 @@ public class EnvironmentVariableConfigurationProvider : ConfigurationProvider
 {
     private readonly string _prefix;
     private readonly bool _skipUnresolved;
-    private static readonly Regex _placeholderRegex = new(@"\${(\w+)}", RegexOptions.Compiled);
+    private static readonly Regex _placeholderRegex = new(@"\${(\w+)}", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     public EnvironmentVariableConfigurationProvider(string prefix = "", bool skipUnresolved = false)
     {
