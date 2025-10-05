@@ -50,22 +50,28 @@ jobs:
           if ($dev_tags.Count -eq 0) {
             $new_version = "1.0.0"
           } else {
-            $highest_version = @{major=0; minor=0; patch=0}
+            # Find the highest version from dev tags
+            $version_numbers = @()
             foreach ($tag in $dev_tags) {
               if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
                 $major = [int]$matches[1]
                 $minor = [int]$matches[2]
                 $patch = [int]$matches[3]
-                if (($major -gt $highest_version.major) -or
-                  ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or
-                  ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
-                  $highest_version.major = $major
-                  $highest_version.minor = $minor
-                  $highest_version.patch = $patch
+                $version_numbers += [PSCustomObject]@{
+                  Major = $major
+                  Minor = $minor  
+                  Patch = $patch
+                  FullVersion = "$major.$minor.$patch"
                 }
               }
             }
-            $new_version = "$($highest_version.major).$($highest_version.minor).$highest_version.patch"
+            # Sort and get the highest version
+            $highest = $version_numbers | Sort-Object Major,Minor,Patch -Descending | Select-Object -First 1
+            if ($highest) {
+              $new_version = $highest.FullVersion
+            } else {
+              $new_version = "1.0.0"
+            }
           }
           $tag = "v$new_version"
           # Se il tag esiste già, non fare nulla
