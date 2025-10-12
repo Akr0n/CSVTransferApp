@@ -74,7 +74,7 @@ INSERT INTO employees (first_name, last_name, email) VALUES
 ON CONFLICT DO NOTHING;"
 
 # SQL Server
-docker exec csvtransferapp-sqlserver-1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "LocalDev123!" -Q "
+docker exec csvtransferapp-sqlserver-1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$env:SQLSERVER_SA_PASSWORD" -Q "
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'CsvTransfer')
 BEGIN
     CREATE DATABASE CsvTransfer;

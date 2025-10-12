@@ -40,7 +40,7 @@ config/
 "DatabaseConnections": {
 "OracleMain": {
 "Provider": "Oracle.EntityFrameworkCore",
-"ConnectionString": "Data Source=oracle-server:1521/ORCL;User Id=csvapp;Password=password123;",
+"ConnectionString": "Data Source=oracle-server:1521/ORCL;User Id=csvapp;Password=${ORACLE_PASSWORD};",
 "ConnectionTimeout": 30,
 "CommandTimeout": 300,
 "MaxPoolSize": 100,
@@ -48,7 +48,7 @@ config/
 },
 "OracleReporting": {
 "Provider": "Oracle.EntityFrameworkCore",
-"ConnectionString": "Data Source=oracle-rep:1521/REPORTING;User Id=csvapp_ro;Password=password123;",
+"ConnectionString": "Data Source=oracle-rep:1521/REPORTING;User Id=csvapp_ro;Password=${ORACLE_RO_PASSWORD};",
 "ConnectionTimeout": 60,
 "CommandTimeout": 600,
 "MaxPoolSize": 50,
@@ -62,7 +62,7 @@ config/
 {
 "OracleAdvanced": {
 "Provider": "Oracle.EntityFrameworkCore",
-"ConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oracle-cluster)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=PROD)));User Id=csvapp;Password=password123;Connection Timeout=30;Pooling=true;Min Pool Size=5;Max Pool Size=100;",
+"ConnectionString": "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=oracle-cluster)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=PROD)));User Id=csvapp;Password=${ORACLE_PROD_PASSWORD};Connection Timeout=30;Pooling=true;Min Pool Size=5;Max Pool Size=100;",
 "ConnectionTimeout": 30,
 "CommandTimeout": 300,
 "MaxPoolSize": 100,
@@ -81,7 +81,7 @@ config/
 "DatabaseConnections": {
 "SqlServerMain": {
 "Provider": "Microsoft.EntityFrameworkCore.SqlServer",
-"ConnectionString": "Server=sql-server;Database=ProductionDB;User Id=csvapp;Password=password123;TrustServerCertificate=true;Encrypt=true;",
+"ConnectionString": "Server=sql-server;Database=ProductionDB;User Id=csvapp;Password=${SQLSERVER_PROD_PASSWORD};TrustServerCertificate=true;Encrypt=true;",
 "ConnectionTimeout": 30,
 "CommandTimeout": 300,
 "MaxPoolSize": 100,
@@ -89,7 +89,7 @@ config/
 },
 "SqlServerReadOnly": {
 "Provider": "Microsoft.EntityFrameworkCore.SqlServer",
-"ConnectionString": "Server=sql-server;Database=ProductionDB;User Id=csvapp_ro;Password=password123;TrustServerCertificate=true;Encrypt=true;ApplicationIntent=ReadOnly;",
+"ConnectionString": "Server=sql-server;Database=ProductionDB;User Id=csvapp_ro;Password=${SQLSERVER_RO_PASSWORD};TrustServerCertificate=true;Encrypt=true;ApplicationIntent=ReadOnly;",
 "ConnectionTimeout": 30,
 "CommandTimeout": 300,
 "MaxPoolSize": 200,
@@ -116,7 +116,7 @@ config/
 "DatabaseConnections": {
 "PostgreSQLMain": {
 "Provider": "Npgsql.EntityFrameworkCore.PostgreSQL",
-"ConnectionString": "Host=postgres-server;Port=5432;Database=production;Username=csvapp;Password=password123;SSL Mode=Require;",
+"ConnectionString": "Host=postgres-server;Port=5432;Database=production;Username=csvapp;Password=${POSTGRESQL_PROD_PASSWORD};SSL Mode=Require;",
 "ConnectionTimeout": 30,
 "CommandTimeout": 300,
 "MaxPoolSize": 100,
@@ -124,7 +124,7 @@ config/
 },
 "PostgreSQLCluster": {
 "Provider": "Npgsql.EntityFrameworkCore.PostgreSQL",
-"ConnectionString": "Host=pg-primary,pg-secondary;Port=5432;Database=production;Username=csvapp;Password=password123;Target Session Attributes=read-write;",
+"ConnectionString": "Host=pg-primary,pg-secondary;Port=5432;Database=production;Username=csvapp;Password=${POSTGRESQL_CLUSTER_PASSWORD};Target Session Attributes=read-write;",
 "ConnectionTimeout": 30,
 "CommandTimeout": 300,
 "MaxPoolSize": 100,
@@ -143,7 +143,7 @@ config/
 "Host": "sftp.company.com",
 "Port": 22,
 "Username": "csvtransfer",
-"Password": "secure_password_123",
+"Password": "${SFTP_SECURE_PASSWORD}",
 "RemotePath": "/upload/csv",
 "ConnectionTimeout": 30,
 "IsEnabled": true,
@@ -180,7 +180,7 @@ config/
 "Host": "sftp-primary.company.com",
 "Port": 22,
 "Username": "csvtransfer",
-"Password": "password123",
+"Password": "${SFTP_PRIMARY_PASSWORD}",
 "RemotePath": "/primary/uploads",
 "ConnectionTimeout": 30,
 "IsEnabled": true,
@@ -191,7 +191,7 @@ config/
 "Host": "sftp-backup.company.com",
 "Port": 22,
 "Username": "csvtransfer",
-"Password": "password123",
+"Password": "${SFTP_BACKUP_PASSWORD}",
 "RemotePath": "/backup/uploads",
 "ConnectionTimeout": 30,
 "IsEnabled": true

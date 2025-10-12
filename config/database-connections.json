@@ -46,7 +46,7 @@
         "Port": 1521,
         "ServiceName": "XEPDB1",
         "Username": "CSVAPP",
-        "Password": "localdev123",
+        "Password": "${ORACLE_PASSWORD}",
         "MaxPoolSize": 20,
         "IsEnabled": true
       },
@@ -55,7 +55,7 @@
         "Port": 1433,
         "Database": "master",
         "Username": "sa",
-        "Password": "LocalDev123!",
+        "Password": "${SQLSERVER_PASSWORD}",
         "MaxPoolSize": 20,
         "IsEnabled": true
       },
@@ -64,7 +64,7 @@
         "Port": 5432,
         "Database": "csvapp_db",
         "Username": "csvapp",
-        "Password": "localdev123",
+        "Password": "${POSTGRESQL_PASSWORD}",
         "MaxPoolSize": 20,
         "IsEnabled": true
       }
