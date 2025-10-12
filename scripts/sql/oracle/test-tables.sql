@@ -30,7 +30,7 @@ CREATE TABLE employees (
     salary NUMBER(10,2),
     department_id NUMBER(10),
     manager_id NUMBER(10),
-    active CHAR(1) DEFAULT 'Y' CHECK (active IN ('Y', 'N')),
+    active VARCHAR2(1) DEFAULT 'Y' CHECK (active IN ('Y', 'N')),
     created_date DATE DEFAULT SYSDATE,
     FOREIGN KEY (department_id) REFERENCES departments(department_id),
     FOREIGN KEY (manager_id) REFERENCES employees(employee_id)

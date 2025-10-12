@@ -11,24 +11,38 @@ public class CommandLineParser : ICommandLineParser
 
         try
         {
+            string? pendingKey = null;
+
             for (int i = 0; i < args.Length; i++)
             {
-                if (!args[i].StartsWith("--"))
-                {
-                    result.Errors.Add($"Invalid argument format: {args[i]}");
-                    continue;
-                }
+                var current = args[i];
 
-                var key = args[i].Substring(2);
-                
-                if (i + 1 >= args.Length || args[i + 1].StartsWith("--"))
+                if (current.StartsWith("--"))
                 {
-                    result.Errors.Add($"Missing value for argument: {key}");
-                    continue;
-                }
+                    if (pendingKey != null)
+                    {
+                        result.Errors.Add($"Missing value for argument: {pendingKey}");
+                    }
 
-                arguments[key] = args[i + 1];
-                i++;
+                    pendingKey = current.Substring(2);
+                }
+                else
+                {
+                    if (pendingKey != null)
+                    {
+                        arguments[pendingKey] = current;
+                        pendingKey = null;
+                    }
+                    else
+                    {
+                        result.Errors.Add($"Invalid argument format: {current}");
+                    }
+                }
+            }
+
+            if (pendingKey != null)
+            {
+                result.Errors.Add($"Missing value for argument: {pendingKey}");
             }
         }
         catch (Exception ex)
