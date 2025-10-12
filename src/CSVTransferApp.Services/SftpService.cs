@@ -83,7 +83,6 @@ public class SftpService : ISftpService
         }
 
         _clients.Clear();
-        GC.SuppressFinalize(this);
     }
 
     private SftpClient GetSftpClient(string connectionName)

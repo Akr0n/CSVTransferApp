@@ -46,6 +46,14 @@ appsettings.Production.json
 *.key
 *.pem
 
+# Environment files with secrets
+.env
+.env.example
+.env.local
+.env.production
+.env.staging
+.env.development
+
 # Log files
 logs/
 *.log

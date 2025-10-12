@@ -12,6 +12,7 @@ namespace CSVTransferApp.Data.Services;
 
 public class DatabaseService : IDatabaseService
 {
+    private const string ConnectionNameNullOrEmptyMessage = "Connection name cannot be null or empty";
     private readonly IConfiguration _configuration;
     private readonly ILogger<DatabaseService> _logger;
     private readonly ConcurrentDictionary<string, IDbConnection> _connections;
@@ -26,7 +27,7 @@ public class DatabaseService : IDatabaseService
     public async Task<DataTable> ExecuteQueryAsync(string connectionName, string query)
     {
         if (string.IsNullOrEmpty(connectionName))
-            throw new ArgumentException("Connection name cannot be null or empty", nameof(connectionName));
+            throw new ArgumentException(ConnectionNameNullOrEmptyMessage, nameof(connectionName));
             
         if (string.IsNullOrEmpty(query))
             throw new ArgumentException("Query cannot be null or empty", nameof(query));
@@ -65,7 +66,7 @@ public class DatabaseService : IDatabaseService
     public async Task<bool> TestConnectionAsync(string connectionName)
     {
         if (string.IsNullOrEmpty(connectionName))
-            throw new ArgumentException("Connection name cannot be null or empty", nameof(connectionName));
+            throw new ArgumentException(ConnectionNameNullOrEmptyMessage, nameof(connectionName));
 
         try
         {
@@ -82,7 +83,7 @@ public class DatabaseService : IDatabaseService
     public async Task<List<string>> GetTablesAsync(string connectionName)
     {
         if (string.IsNullOrEmpty(connectionName))
-            throw new ArgumentException("Connection name cannot be null or empty", nameof(connectionName));
+            throw new ArgumentException(ConnectionNameNullOrEmptyMessage, nameof(connectionName));
 
         var connection = await GetConnectionAsync(connectionName);
         var tables = new List<string>();
@@ -102,7 +103,7 @@ public class DatabaseService : IDatabaseService
     public async Task<List<string>> GetColumnsAsync(string connectionName, string tableName)
     {
         if (string.IsNullOrEmpty(connectionName))
-            throw new ArgumentException("Connection name cannot be null or empty", nameof(connectionName));
+            throw new ArgumentException(ConnectionNameNullOrEmptyMessage, nameof(connectionName));
             
         if (string.IsNullOrEmpty(tableName))
             throw new ArgumentException("Table name cannot be null or empty", nameof(tableName));
@@ -122,7 +123,7 @@ public class DatabaseService : IDatabaseService
         return columns;
     }
 
-    private string GetTableListQuery(IDbConnection connection)
+    private static string GetTableListQuery(IDbConnection connection)
     {
         return connection switch
         {
@@ -133,7 +134,7 @@ public class DatabaseService : IDatabaseService
         };
     }
 
-    private string GetColumnListQuery(IDbConnection connection, string tableName)
+    private static string GetColumnListQuery(IDbConnection connection, string tableName)
     {
         return connection switch
         {
@@ -159,7 +160,6 @@ public class DatabaseService : IDatabaseService
         }
 
         _connections.Clear();
-        GC.SuppressFinalize(this);
     }
 
     private Task<IDbConnection> GetConnectionAsync(string connectionName)

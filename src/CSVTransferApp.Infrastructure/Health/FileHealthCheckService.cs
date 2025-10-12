@@ -7,7 +7,6 @@ namespace CSVTransferApp.Infrastructure.Health;
 public class FileHealthCheckService : IHealthCheckService, IDisposable
 {
     private readonly ILogger<FileHealthCheckService> _logger;
-    private readonly IConfiguration _configuration;
     private readonly CancellationTokenSource _cts = new();
     private Task? _worker;
     private readonly string _healthFilePath;
@@ -16,19 +15,17 @@ public class FileHealthCheckService : IHealthCheckService, IDisposable
     public FileHealthCheckService(ILogger<FileHealthCheckService> logger, IConfiguration configuration)
     {
         _logger = logger;
-        _configuration = configuration;
 
-        var logsDir = _configuration["Logging:Path"] ?? "logs";
+        var logsDir = configuration["Logging:Path"] ?? "logs";
         if (!Directory.Exists(logsDir)) Directory.CreateDirectory(logsDir);
 
         _healthFilePath = Path.Combine(logsDir, "health.txt");
 
-        if (!int.TryParse(_configuration["HealthCheck:IntervalSeconds"], out var seconds))
+        if (!int.TryParse(configuration["HealthCheck:IntervalSeconds"], out var seconds))
             seconds = 30;
 
         _interval = TimeSpan.FromSeconds(seconds);
     }
-
     public void Start()
     {
         if (_worker != null) return; // already started
@@ -62,7 +59,7 @@ public class FileHealthCheckService : IHealthCheckService, IDisposable
     {
         try
         {
-            _cts.Cancel();
+            await _cts.CancelAsync();
         }
         catch (Exception ex)
         {
@@ -95,8 +92,8 @@ public class FileHealthCheckService : IHealthCheckService, IDisposable
         if (_disposed) return;
         if (disposing)
         {
-            try { _cts.Cancel(); } catch { }
-            try { _cts.Dispose(); } catch { }
+            try { _cts.Cancel(); } catch { /* Cancel may throw if already disposed - safe to ignore during cleanup */ }
+            try { _cts.Dispose(); } catch { /* Dispose may throw if already disposed - safe to ignore during cleanup */ }
         }
         _disposed = true;
     }
