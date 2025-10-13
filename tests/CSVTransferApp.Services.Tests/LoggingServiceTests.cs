@@ -7,7 +7,7 @@ using CSVTransferApp.Core.Interfaces;
 
 namespace CSVTransferApp.Services.Tests;
 
-public class LoggingServiceTests
+public class LoggingServiceTests : IDisposable
 {
     private readonly Mock<ILogger<LoggingService>> _loggerMock;
     private readonly Mock<IConfigurationService> _configurationServiceMock;
@@ -19,7 +19,14 @@ public class LoggingServiceTests
         _loggerMock = new Mock<ILogger<LoggingService>>();
         _configurationServiceMock = new Mock<IConfigurationService>();
         
-        _configurationServiceMock.Setup(x => x.GetValue("Processing:LogPath", "./logs"))
+        // Ensure test directory exists
+        if (Directory.Exists(_testLogPath))
+        {
+            Directory.Delete(_testLogPath, true);
+        }
+        Directory.CreateDirectory(_testLogPath);
+        
+        _configurationServiceMock.Setup(x => x.GetValue<string>("Processing:LogPath", "./logs"))
             .Returns(_testLogPath);
 
         _service = new LoggingService(_loggerMock.Object, _configurationServiceMock.Object);
@@ -110,5 +117,15 @@ public class LoggingServiceTests
         content.Should().Contain(message1);
         content.Should().Contain(message2);
         content.Split('\n', StringSplitOptions.RemoveEmptyEntries).Should().HaveCountGreaterOrEqualTo(2);
+    }
+    
+    public void Dispose()
+    {
+        // Clean up test directory
+        if (Directory.Exists(_testLogPath))
+        {
+            Directory.Delete(_testLogPath, true);
+        }
+        GC.SuppressFinalize(this);
     }
 }

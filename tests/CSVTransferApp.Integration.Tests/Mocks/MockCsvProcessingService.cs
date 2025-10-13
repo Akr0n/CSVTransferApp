@@ -21,7 +21,8 @@ public class MockCsvProcessingService : ICsvProcessingService
         var result = new ProcessingResult
         {
             IsSuccess = true,
-            RecordsProcessed = 100 // Mock value
+            RecordsProcessed = 100, // Mock value
+            FileSizeBytes = 1024 // Mock value
         };
         
         return Task.FromResult(result);
@@ -37,7 +38,8 @@ public class MockCsvProcessingService : ICsvProcessingService
             results.Add(new ProcessingResult
             {
                 IsSuccess = true,
-                RecordsProcessed = 100 // Mock value
+                RecordsProcessed = 100, // Mock value
+                FileSizeBytes = 1024 // Mock value
             });
         }
         return Task.FromResult(results);

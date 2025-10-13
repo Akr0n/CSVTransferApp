@@ -1,6 +1,8 @@
 using Xunit;
 using FluentAssertions;
 using Moq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using CSVTransferApp.Services;
 using CSVTransferApp.Core.Models;
 using CSVTransferApp.Core.Interfaces;
@@ -12,28 +14,30 @@ public class CsvProcessingServiceTests
 {
     private readonly Mock<IDatabaseService> _databaseServiceMock;
     private readonly Mock<ISftpService> _sftpServiceMock;
-    private readonly Mock<ILoggerService> _loggerServiceMock;
-    private readonly Mock<IConfigurationService> _configurationServiceMock;
+    private readonly Mock<ILogger<CsvProcessingService>> _loggerMock;
     private readonly CsvProcessingService _service;
 
     public CsvProcessingServiceTests()
     {
         _databaseServiceMock = new Mock<IDatabaseService>();
         _sftpServiceMock = new Mock<ISftpService>();
-        _loggerServiceMock = new Mock<ILoggerService>();
-        _configurationServiceMock = new Mock<IConfigurationService>();
-
-        // Setup default configuration values
-        _configurationServiceMock.Setup(x => x.GetValue("Processing:MaxConcurrentConnections", It.IsAny<int>()))
-            .Returns(5);
-        _configurationServiceMock.Setup(x => x.GetValue("Processing:MaxConcurrentFiles", It.IsAny<int>()))
-            .Returns(10);
+        _loggerMock = new Mock<ILogger<CsvProcessingService>>();
+        
+        // Create real configuration instead of mocking extension methods
+        var configData = new Dictionary<string, string>
+        {
+            ["Processing:MaxConcurrentConnections"] = "5",
+            ["Processing:MaxConcurrentFiles"] = "10"
+        };
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData!)
+            .Build();
 
         _service = new CsvProcessingService(
             _databaseServiceMock.Object,
             _sftpServiceMock.Object,
-            _loggerServiceMock.Object,
-            _configurationServiceMock.Object);
+            _loggerMock.Object,
+            configuration);
     }
 
     [Fact]
