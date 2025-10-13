@@ -115,7 +115,7 @@ jobs:
           $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
           $scannerPath = Join-Path $scannerDir "dotnet-sonarscanner"
           Write-Host "Using scanner at: $scannerPath"
-          & $scannerPath begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io"
+          & $scannerPath begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml" /d:sonar.coverage.exclusions="**/Program.cs,**/GlobalUsings.cs,**/*Tests/**,**/Migrations/**" /d:sonar.exclusions="**/bin/**,**/obj/**,**/logs/**,**/publish/**,**/deploy/**"
 
       - name: Restore dependencies
         run: dotnet restore --verbosity normal
@@ -126,14 +126,27 @@ jobs:
       - name: Run tests with coverage
         shell: powershell
         run: |
-          # Cerca progetti di test
+          # Verifica che la solution contenga progetti di test
+          Write-Output "🔍 Checking for test projects in solution..."
           $testProjects = Get-ChildItem -Path . -Recurse -Include "*Tests.csproj"
           
           if ($testProjects.Count -gt 0) {
-              Write-Output "Found $($testProjects.Count) test project(s)"
+              Write-Output "✅ Found $($testProjects.Count) test project(s):"
+              foreach ($project in $testProjects) {
+                  Write-Output "  - $($project.Name)"
+              }
               
-              # Esegui test con coverage
-              dotnet-coverage collect "dotnet test --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults" -f xml -o "coverage.opencover.xml"
+              # Esegui test con coverage - specificando la solution per includere tutti i progetti
+              Write-Output "🧪 Running tests with coverage collection..."
+              dotnet-coverage collect "dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults --collect:`"XPlat Code Coverage`"" -f xml -o "coverage.opencover.xml"
+              
+              # Verifica che il file di coverage sia stato creato
+              if (Test-Path "coverage.opencover.xml") {
+                  $fileSize = (Get-Item "coverage.opencover.xml").Length
+                  Write-Output "✅ Coverage file created successfully (Size: $fileSize bytes)"
+              } else {
+                  Write-Output "⚠️ Coverage file not found, creating empty one"
+              }
               
               Write-Output "✅ Tests completed with coverage"
           } else {
