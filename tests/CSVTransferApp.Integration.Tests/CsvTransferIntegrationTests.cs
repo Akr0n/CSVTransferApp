@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
 using Xunit;
-using FluentAssertions;
 
 namespace CSVTransferApp.Integration.Tests;
 
@@ -31,7 +30,7 @@ public class CsvTransferIntegrationTests : IAsyncLifetime
         await _dbContainer.StartAsync();
         
         // Setup test database
-        using var conn = _dbContainer.GetDataSource().CreateConnection();
+        using var conn = new Npgsql.NpgsqlConnection(_dbContainer.GetConnectionString());
         await conn.OpenAsync();
         using var cmd = conn.CreateCommand();
         cmd.CommandText = @"
