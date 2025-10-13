@@ -11,12 +11,18 @@ namespace CSVTransferApp.Integration.Tests;
 
 public class CsvTransferIntegrationTests : IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _dbContainer;
+    private PostgreSqlContainer? _dbContainer;
     private IServiceProvider? _serviceProvider;
     private ICsvProcessingService? _csvProcessingService;
 
     public CsvTransferIntegrationTests()
     {
+        // Container will be initialized in InitializeAsync
+    }
+
+    public async Task InitializeAsync()
+    {
+        // Try to create and start container - if Docker is not available, skip
         try
         {
             _dbContainer = new PostgreSqlBuilder()
@@ -25,20 +31,15 @@ public class CsvTransferIntegrationTests : IAsyncLifetime
                 .WithUsername("test")
                 .WithPassword("test")
                 .Build();
+                
+            await _dbContainer.StartAsync();
         }
         catch (Exception)
         {
             // Docker not available - will skip tests
-            _dbContainer = null!;
+            _dbContainer = null;
+            return;
         }
-    }
-
-    public async Task InitializeAsync()
-    {
-        if (_dbContainer == null)
-            return; // Docker not available, skip initialization
-            
-        await _dbContainer.StartAsync();
         
         // Setup test database
         using var conn = new Npgsql.NpgsqlConnection(_dbContainer.GetConnectionString());
