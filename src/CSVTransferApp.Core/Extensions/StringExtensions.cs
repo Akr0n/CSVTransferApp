@@ -9,7 +9,12 @@ public static class StringExtensions
 
     public static string ToSafeFileName(this string fileName)
     {
-        var invalidChars = Path.GetInvalidFileNameChars();
+        // Use a consistent set of invalid characters across all platforms
+        var invalidChars = new char[] { '<', '>', ':', '"', '|', '?', '*', '\\', '/', '\0' }
+            .Concat(Path.GetInvalidFileNameChars())
+            .Distinct()
+            .ToArray();
+        
         return new string(fileName.Where(ch => !invalidChars.Contains(ch)).ToArray());
     }
 

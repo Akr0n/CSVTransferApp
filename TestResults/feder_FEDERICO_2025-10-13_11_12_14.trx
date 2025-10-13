@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="b93a076c-a1a0-458a-ab3a-9ac14cebfc2b" name="feder@FEDERICO 2025-10-13 11:12:14" runUser="FEDERICO\feder" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2025-10-13T11:12:14.0783737+02:00" queuing="2025-10-13T11:12:14.0783742+02:00" start="2025-10-13T11:12:08.6538230+02:00" finish="2025-10-13T11:12:14.9234705+02:00" />
+  <TestSettings name="default" id="508401f7-5f6e-4865-836d-4b8a55e49456">
+    <Deployment runDeploymentRoot="feder_FEDERICO_2025-10-13_11_12_14" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="080d733b-05bc-40a7-bc06-64e693e27740" testId="414a697c-6e1b-4f51-79ff-a072b000bd73" testName="CSVTransferApp.Services.Tests.LoggingServiceTests.LogToFileAsync_ShouldCreateLogFile" computerName="FEDERICO" duration="00:00:00.1960676" startTime="2025-10-13T11:12:14.4393991+02:00" endTime="2025-10-13T11:12:14.4393997+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="080d733b-05bc-40a7-bc06-64e693e27740" />
+    <UnitTestResult executionId="cad273b4-6c39-453c-9dc8-bb75d1e5b743" testId="f21951d9-9055-c8f7-969f-2c2b57db934d" testName="CSVTransferApp.Services.Tests.SftpServiceTests.TestConnectionAsync_WithValidConnection_ShouldReturnTrue" computerName="FEDERICO" duration="00:00:00.0013079" startTime="2025-10-13T11:12:12.8402321+02:00" endTime="2025-10-13T11:12:12.8402325+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="cad273b4-6c39-453c-9dc8-bb75d1e5b743" />
+    <UnitTestResult executionId="f9f90c47-c805-4925-b841-7d560b521247" testId="c9740843-a329-2f49-13a9-9998a750ab56" testName="CSVTransferApp.Services.Tests.SftpServiceTests.DeleteFileAsync_WithExistingFile_ShouldRemoveFile" computerName="FEDERICO" duration="00:00:00.0975388" startTime="2025-10-13T11:12:12.7496269+02:00" endTime="2025-10-13T11:12:12.7496737+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f9f90c47-c805-4925-b841-7d560b521247" />
+    <UnitTestResult executionId="29ced647-bc64-43d0-877f-4e042654d76f" testId="8c0cff52-0bd4-db61-d936-43200311138c" testName="CSVTransferApp.Services.Tests.LoggingServiceTests.LogError_WithException_ShouldCallUnderlyingLogger" computerName="FEDERICO" duration="00:00:00.0335210" startTime="2025-10-13T11:12:14.4747658+02:00" endTime="2025-10-13T11:12:14.4747665+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="29ced647-bc64-43d0-877f-4e042654d76f" />
+    <UnitTestResult executionId="f8c588d0-31d4-4a56-b786-c937fbc22a75" testId="b149da05-b5f9-2874-38b5-94680314fa01" testName="CSVTransferApp.Services.Tests.CsvProcessingServiceTests.ProcessJobAsync_WithValidJob_ShouldReturnSuccessResult" computerName="FEDERICO" duration="00:00:00.4063678" startTime="2025-10-13T11:12:14.5486164+02:00" endTime="2025-10-13T11:12:14.5486169+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f8c588d0-31d4-4a56-b786-c937fbc22a75" />
+    <UnitTestResult executionId="544c19ae-b1e0-4092-9966-7d1fc01ff8fc" testId="9791f766-fe7a-1005-5992-135bab7b0262" testName="CSVTransferApp.Services.Tests.CsvProcessingServiceTests.ProcessJobAsync_WithDatabaseError_ShouldReturnFailureResult" computerName="FEDERICO" duration="00:00:00.5963052" startTime="2025-10-13T11:12:13.1625029+02:00" endTime="2025-10-13T11:12:13.1625034+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="544c19ae-b1e0-4092-9966-7d1fc01ff8fc" />
+    <UnitTestResult executionId="68a3b037-9cca-4954-b130-38e8d7723740" testId="3768979c-e66c-76a2-d2a7-44e36511dc9c" testName="CSVTransferApp.Services.Tests.CsvProcessingServiceTests.ProcessJobAsync_WithSftpError_ShouldReturnFailureResult" computerName="FEDERICO" duration="00:00:00.0299178" startTime="2025-10-13T11:12:14.5794228+02:00" endTime="2025-10-13T11:12:14.5794232+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="68a3b037-9cca-4954-b130-38e8d7723740" />
+    <UnitTestResult executionId="1d1ccf50-94b0-44bc-9700-41599b745733" testId="0311605a-b804-5911-6699-4b200cd97e65" testName="CSVTransferApp.Services.Tests.CsvProcessingServiceTests.ProcessJobsAsync_WithMultipleJobs_ShouldProcessAllJobs" computerName="FEDERICO" duration="00:00:00.8281946" startTime="2025-10-13T11:12:14.0776360+02:00" endTime="2025-10-13T11:12:14.0776363+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1d1ccf50-94b0-44bc-9700-41599b745733" />
+    <UnitTestResult executionId="c8ee1b6a-2261-449c-9bde-4d0a4711918f" testId="7c106f74-8986-27d6-3ecf-75f0a01f1368" testName="CSVTransferApp.Services.Tests.SftpServiceTests.TestConnectionAsync_WithInvalidConnection_ShouldReturnFalse" computerName="FEDERICO" duration="00:00:00.0394319" startTime="2025-10-13T11:12:12.8983614+02:00" endTime="2025-10-13T11:12:12.8983617+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c8ee1b6a-2261-449c-9bde-4d0a4711918f" />
+    <UnitTestResult executionId="2860310b-2def-423f-80d4-7657416efadc" testId="6155e3cf-e7e6-f1e3-1859-0f9ee95729c6" testName="CSVTransferApp.Services.Tests.SftpServiceTests.UploadFileAsync_WithSftpError_ShouldThrowException" computerName="FEDERICO" duration="00:00:00.0871506" startTime="2025-10-13T11:12:12.8387492+02:00" endTime="2025-10-13T11:12:12.8387494+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2860310b-2def-423f-80d4-7657416efadc" />
+    <UnitTestResult executionId="83809b1b-813a-4ca3-90e2-a5c45d7304a1" testId="ce2d2695-7112-2f12-0c74-82ca6a7a6477" testName="CSVTransferApp.Services.Tests.SftpServiceTests.FileExistsAsync_WithExistingFile_ShouldReturnTrue" computerName="FEDERICO" duration="00:00:00.0022357" startTime="2025-10-13T11:12:12.7593749+02:00" endTime="2025-10-13T11:12:12.7593751+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="83809b1b-813a-4ca3-90e2-a5c45d7304a1" />
+    <UnitTestResult executionId="b03d1a28-af91-4e24-b703-e976cec1258d" testId="5ad90449-80ac-e585-ac65-de494b2d3d90" testName="CSVTransferApp.Services.Tests.SftpServiceTests.UploadFileAsync_WithValidParameters_ShouldUploadFile" computerName="FEDERICO" duration="00:00:00.0183518" startTime="2025-10-13T11:12:12.8596277+02:00" endTime="2025-10-13T11:12:12.8596280+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b03d1a28-af91-4e24-b703-e976cec1258d" />
+    <UnitTestResult executionId="2a42bb7e-58dd-41d2-9e7f-1f719be4a3e7" testId="1a3f0698-1a84-991e-2fce-7f18df4ebcfc" testName="CSVTransferApp.Services.Tests.LoggingServiceTests.LogInformation_ShouldCallUnderlyingLogger" computerName="FEDERICO" duration="00:00:00.0323714" startTime="2025-10-13T11:12:14.5058479+02:00" endTime="2025-10-13T11:12:14.5058484+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2a42bb7e-58dd-41d2-9e7f-1f719be4a3e7" />
+    <UnitTestResult executionId="32773309-fa12-45fe-93b8-9ddc3fb04c70" testId="ce9da444-b47f-cc0c-4f0d-b06f45b1dceb" testName="CSVTransferApp.Services.Tests.LoggingServiceTests.LogToFileAsync_WithMultipleMessages_ShouldAppendToFile" computerName="FEDERICO" duration="00:00:01.2831132" startTime="2025-10-13T11:12:13.9910336+02:00" endTime="2025-10-13T11:12:13.9910339+02:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="32773309-fa12-45fe-93b8-9ddc3fb04c70" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="CSVTransferApp.Services.Tests.LoggingServiceTests.LogError_WithException_ShouldCallUnderlyingLogger" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="8c0cff52-0bd4-db61-d936-43200311138c">
+      <Execution id="29ced647-bc64-43d0-877f-4e042654d76f" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.LoggingServiceTests" name="LogError_WithException_ShouldCallUnderlyingLogger" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.LoggingServiceTests.LogToFileAsync_ShouldCreateLogFile" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="414a697c-6e1b-4f51-79ff-a072b000bd73">
+      <Execution id="080d733b-05bc-40a7-bc06-64e693e27740" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.LoggingServiceTests" name="LogToFileAsync_ShouldCreateLogFile" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.SftpServiceTests.UploadFileAsync_WithSftpError_ShouldThrowException" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="6155e3cf-e7e6-f1e3-1859-0f9ee95729c6">
+      <Execution id="2860310b-2def-423f-80d4-7657416efadc" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.SftpServiceTests" name="UploadFileAsync_WithSftpError_ShouldThrowException" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.LoggingServiceTests.LogToFileAsync_WithMultipleMessages_ShouldAppendToFile" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="ce9da444-b47f-cc0c-4f0d-b06f45b1dceb">
+      <Execution id="32773309-fa12-45fe-93b8-9ddc3fb04c70" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.LoggingServiceTests" name="LogToFileAsync_WithMultipleMessages_ShouldAppendToFile" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.SftpServiceTests.TestConnectionAsync_WithInvalidConnection_ShouldReturnFalse" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="7c106f74-8986-27d6-3ecf-75f0a01f1368">
+      <Execution id="c8ee1b6a-2261-449c-9bde-4d0a4711918f" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.SftpServiceTests" name="TestConnectionAsync_WithInvalidConnection_ShouldReturnFalse" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.CsvProcessingServiceTests.ProcessJobsAsync_WithMultipleJobs_ShouldProcessAllJobs" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="0311605a-b804-5911-6699-4b200cd97e65">
+      <Execution id="1d1ccf50-94b0-44bc-9700-41599b745733" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.CsvProcessingServiceTests" name="ProcessJobsAsync_WithMultipleJobs_ShouldProcessAllJobs" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.CsvProcessingServiceTests.ProcessJobAsync_WithSftpError_ShouldReturnFailureResult" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="3768979c-e66c-76a2-d2a7-44e36511dc9c">
+      <Execution id="68a3b037-9cca-4954-b130-38e8d7723740" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.CsvProcessingServiceTests" name="ProcessJobAsync_WithSftpError_ShouldReturnFailureResult" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.SftpServiceTests.FileExistsAsync_WithExistingFile_ShouldReturnTrue" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="ce2d2695-7112-2f12-0c74-82ca6a7a6477">
+      <Execution id="83809b1b-813a-4ca3-90e2-a5c45d7304a1" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.SftpServiceTests" name="FileExistsAsync_WithExistingFile_ShouldReturnTrue" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.LoggingServiceTests.LogInformation_ShouldCallUnderlyingLogger" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="1a3f0698-1a84-991e-2fce-7f18df4ebcfc">
+      <Execution id="2a42bb7e-58dd-41d2-9e7f-1f719be4a3e7" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.LoggingServiceTests" name="LogInformation_ShouldCallUnderlyingLogger" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.SftpServiceTests.UploadFileAsync_WithValidParameters_ShouldUploadFile" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="5ad90449-80ac-e585-ac65-de494b2d3d90">
+      <Execution id="b03d1a28-af91-4e24-b703-e976cec1258d" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.SftpServiceTests" name="UploadFileAsync_WithValidParameters_ShouldUploadFile" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.CsvProcessingServiceTests.ProcessJobAsync_WithValidJob_ShouldReturnSuccessResult" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="b149da05-b5f9-2874-38b5-94680314fa01">
+      <Execution id="f8c588d0-31d4-4a56-b786-c937fbc22a75" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.CsvProcessingServiceTests" name="ProcessJobAsync_WithValidJob_ShouldReturnSuccessResult" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.SftpServiceTests.DeleteFileAsync_WithExistingFile_ShouldRemoveFile" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="c9740843-a329-2f49-13a9-9998a750ab56">
+      <Execution id="f9f90c47-c805-4925-b841-7d560b521247" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.SftpServiceTests" name="DeleteFileAsync_WithExistingFile_ShouldRemoveFile" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.SftpServiceTests.TestConnectionAsync_WithValidConnection_ShouldReturnTrue" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="f21951d9-9055-c8f7-969f-2c2b57db934d">
+      <Execution id="cad273b4-6c39-453c-9dc8-bb75d1e5b743" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.SftpServiceTests" name="TestConnectionAsync_WithValidConnection_ShouldReturnTrue" />
+    </UnitTest>
+    <UnitTest name="CSVTransferApp.Services.Tests.CsvProcessingServiceTests.ProcessJobAsync_WithDatabaseError_ShouldReturnFailureResult" storage="c:\_repositories\csvtransferapp\tests\csvtransferapp.services.tests\bin\release\net9.0\csvtransferapp.services.tests.dll" id="9791f766-fe7a-1005-5992-135bab7b0262">
+      <Execution id="544c19ae-b1e0-4092-9966-7d1fc01ff8fc" />
+      <TestMethod codeBase="C:\_repositories\CSVTransferApp\tests\CSVTransferApp.Services.Tests\bin\Release\net9.0\CSVTransferApp.Services.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="CSVTransferApp.Services.Tests.CsvProcessingServiceTests" name="ProcessJobAsync_WithDatabaseError_ShouldReturnFailureResult" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="414a697c-6e1b-4f51-79ff-a072b000bd73" executionId="080d733b-05bc-40a7-bc06-64e693e27740" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f21951d9-9055-c8f7-969f-2c2b57db934d" executionId="cad273b4-6c39-453c-9dc8-bb75d1e5b743" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c9740843-a329-2f49-13a9-9998a750ab56" executionId="f9f90c47-c805-4925-b841-7d560b521247" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8c0cff52-0bd4-db61-d936-43200311138c" executionId="29ced647-bc64-43d0-877f-4e042654d76f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b149da05-b5f9-2874-38b5-94680314fa01" executionId="f8c588d0-31d4-4a56-b786-c937fbc22a75" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9791f766-fe7a-1005-5992-135bab7b0262" executionId="544c19ae-b1e0-4092-9966-7d1fc01ff8fc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3768979c-e66c-76a2-d2a7-44e36511dc9c" executionId="68a3b037-9cca-4954-b130-38e8d7723740" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0311605a-b804-5911-6699-4b200cd97e65" executionId="1d1ccf50-94b0-44bc-9700-41599b745733" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7c106f74-8986-27d6-3ecf-75f0a01f1368" executionId="c8ee1b6a-2261-449c-9bde-4d0a4711918f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6155e3cf-e7e6-f1e3-1859-0f9ee95729c6" executionId="2860310b-2def-423f-80d4-7657416efadc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ce2d2695-7112-2f12-0c74-82ca6a7a6477" executionId="83809b1b-813a-4ca3-90e2-a5c45d7304a1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="5ad90449-80ac-e585-ac65-de494b2d3d90" executionId="b03d1a28-af91-4e24-b703-e976cec1258d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1a3f0698-1a84-991e-2fce-7f18df4ebcfc" executionId="2a42bb7e-58dd-41d2-9e7f-1f719be4a3e7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ce9da444-b47f-cc0c-4f0d-b06f45b1dceb" executionId="32773309-fa12-45fe-93b8-9ddc3fb04c70" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Risultati non in elenco" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="Tutti i risultati caricati" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="14" executed="14" passed="14" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 9.0.9)&#xD;
+[xUnit.net 00:00:00.41]   Discovering: CSVTransferApp.Services.Tests&#xD;
+[xUnit.net 00:00:00.75]   Discovered:  CSVTransferApp.Services.Tests&#xD;
+[xUnit.net 00:00:00.76]   Starting:    CSVTransferApp.Services.Tests&#xD;
+[xUnit.net 00:00:03.21]   Finished:    CSVTransferApp.Services.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
