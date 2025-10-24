@@ -171,17 +171,29 @@ jobs:
           } else {
               Write-Output "⚠️ No test projects found, creating dummy coverage file"
 
-              # Write a minimal valid OpenCover XML without using here-strings (robust in YAML)
-              $coverageLines = @(
-                "<?xml version=`"1.0`" encoding=`"utf-8`"?>"
-                "<CoverageSession>"
-                "  <Summary numSequencePoints=`"0`" visitedSequencePoints=`"0`" numBranchPoints=`"0`" visitedBranchPoints=`"0`" sequenceCoverage=`"0`" branchCoverage=`"0`" maxCyclomaticComplexity=`"0`" minCyclomaticComplexity=`"0`" />"
-                "  <Modules>"
-                "  </Modules>"
-                "</CoverageSession>"
-              )
-              $coverageContent = $coverageLines -join [Environment]::NewLine
-              Set-Content -Path 'coverage.opencover.xml' -Value $coverageContent -Encoding UTF8
+              # Build a minimal OpenCover document via XmlDocument to avoid quoting issues in YAML/PowerShell
+              $coverage = New-Object System.Xml.XmlDocument
+              $declaration = $coverage.CreateXmlDeclaration("1.0", "utf-8", $null)
+              $coverage.AppendChild($declaration) | Out-Null
+
+              $session = $coverage.CreateElement("CoverageSession")
+              $coverage.AppendChild($session) | Out-Null
+
+              $summary = $coverage.CreateElement("Summary")
+              $summary.SetAttribute("numSequencePoints", "0")
+              $summary.SetAttribute("visitedSequencePoints", "0")
+              $summary.SetAttribute("numBranchPoints", "0")
+              $summary.SetAttribute("visitedBranchPoints", "0")
+              $summary.SetAttribute("sequenceCoverage", "0")
+              $summary.SetAttribute("branchCoverage", "0")
+              $summary.SetAttribute("maxCyclomaticComplexity", "0")
+              $summary.SetAttribute("minCyclomaticComplexity", "0")
+              $session.AppendChild($summary) | Out-Null
+
+              $modules = $coverage.CreateElement("Modules")
+              $session.AppendChild($modules) | Out-Null
+
+              $coverage.Save("coverage.opencover.xml")
           }
 
       - name: End SonarCloud analysis
