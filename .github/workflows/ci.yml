@@ -180,7 +180,8 @@ jobs:
                 '  </Modules>'
                 '</CoverageSession>'
               )
-              $coverageLines | Set-Content -Path "coverage.opencover.xml" -Encoding UTF8
+              $coverageContent = $coverageLines -join [Environment]::NewLine
+              Set-Content -Path 'coverage.opencover.xml' -Value $coverageContent -Encoding UTF8
           }
 
       - name: End SonarCloud analysis
