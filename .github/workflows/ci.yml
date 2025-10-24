@@ -134,7 +134,7 @@ jobs:
           $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
           $scannerPath = Join-Path $scannerDir "dotnet-sonarscanner"
           Write-Host "Using scanner at: $scannerPath"
-          & $scannerPath begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml" /d:sonar.coverage.exclusions="**/Program.cs,**/GlobalUsings.cs,**/*Tests/**,**/Migrations/**" /d:sonar.exclusions="**/bin/**,**/obj/**,**/logs/**,**/publish/**,**/deploy/**"
+          & $scannerPath begin /k:"Akr0n_CSVTransferApp" /o:"akr0n" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="coverage.opencover.xml" /d:sonar.coverage.exclusions="**/Program.cs,**/GlobalUsings.cs,**/*Tests/**,**/Migrations/**" /d:sonar.exclusions="**/bin/**,**/obj/**,**/logs/**,**/publish/**,**/deploy/**"
 
       - name: Restore dependencies
         run: dotnet restore --verbosity normal
