@@ -2,10 +2,31 @@ name: CI - .NET with SonarCloud Analysis
 
 on:
   push:
-    branches: [ main, develop, feature/* ]
+    branches:
+      - develop
   pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [ main, develop ]
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - develop
+      - main
+    paths:
+        - '*.cs'
+        - '*.csproj'
+        - '*.ps1'
+        - '*.sln'
+        - 'src/**'
+        - 'tests/**'
+        - 'config/**'
+        - 'deploy/**'
+        - 'publish/**'
+        - 'scripts/**'
+        - '*/docker-compose.local.yml'
+        - '*/docker-compose.yml'
+    paths-ignore:
+        - '*.md'
 
 # Security: Explicit permissions for CodeQL compliance
 permissions:
