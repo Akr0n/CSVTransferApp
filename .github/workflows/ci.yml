@@ -171,16 +171,14 @@ jobs:
           } else {
               Write-Output "⚠️ No test projects found, creating dummy coverage file"
               
-              $coverageXml = @"
-          <?xml version=`"1.0`" encoding=`"utf-8`"?>
+              @'
+          <?xml version="1.0" encoding="utf-8"?>
           <CoverageSession>
-            <Summary numSequencePoints=`"0`" visitedSequencePoints=`"0`" numBranchPoints=`"0`" visitedBranchPoints=`"0`" sequenceCoverage=`"0`" branchCoverage=`"0`" maxCyclomaticComplexity=`"0`" minCyclomaticComplexity=`"0`" />
+            <Summary numSequencePoints="0" visitedSequencePoints="0" numBranchPoints="0" visitedBranchPoints="0" sequenceCoverage="0" branchCoverage="0" maxCyclomaticComplexity="0" minCyclomaticComplexity="0" />
             <Modules>
             </Modules>
           </CoverageSession>
-          "@
-              
-              Set-Content -Path "coverage.opencover.xml" -Value $coverageXml
+          '@ | Set-Content -Path "coverage.opencover.xml"
           }
 
       - name: End SonarCloud analysis
