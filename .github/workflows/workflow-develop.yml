@@ -17,8 +17,6 @@ on:
         - 'scripts/**'
         - '*/docker-compose.local.yml'
         - '*/docker-compose.yml'
-    paths-ignore:
-        - '*.md'
 
 permissions:
   contents: write

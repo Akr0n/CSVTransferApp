@@ -19,8 +19,6 @@ on:
         - 'scripts/**'
         - '*/docker-compose.local.yml'
         - '*/docker-compose.yml'
-    paths-ignore:
-        - '*.md'
   push:
     tags:
       - 'v*'
