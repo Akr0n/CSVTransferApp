@@ -173,12 +173,12 @@ jobs:
 
               # Write a minimal valid OpenCover XML without using here-strings (robust in YAML)
               $coverageLines = @(
-                '<?xml version="1.0" encoding="utf-8"?>'
-                '<CoverageSession>'
-                '  <Summary numSequencePoints="0" visitedSequencePoints="0" numBranchPoints="0" visitedBranchPoints="0" sequenceCoverage="0" branchCoverage="0" maxCyclomaticComplexity="0" minCyclomaticComplexity="0" />'
-                '  <Modules>'
-                '  </Modules>'
-                '</CoverageSession>'
+                "<?xml version=`"1.0`" encoding=`"utf-8`"?>"
+                "<CoverageSession>"
+                "  <Summary numSequencePoints=`"0`" visitedSequencePoints=`"0`" numBranchPoints=`"0`" visitedBranchPoints=`"0`" sequenceCoverage=`"0`" branchCoverage=`"0`" maxCyclomaticComplexity=`"0`" minCyclomaticComplexity=`"0`" />"
+                "  <Modules>"
+                "  </Modules>"
+                "</CoverageSession>"
               )
               $coverageContent = $coverageLines -join [Environment]::NewLine
               Set-Content -Path 'coverage.opencover.xml' -Value $coverageContent -Encoding UTF8
