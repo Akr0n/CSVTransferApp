@@ -48,6 +48,7 @@ public class CsvProcessingService : ICsvProcessingService
             using var logScope = _logger.BeginScope("Job-{TableName}", job.TableName);
             
             _logger.LogInformation("Processing job for table {TableName}", job.TableName);
+            var startTime = DateTime.UtcNow;
             
             // Esegui query e genera CSV
             var data = await _databaseService.ExecuteQueryAsync(job.DatabaseConnection, job.Query);
@@ -59,6 +60,7 @@ public class CsvProcessingService : ICsvProcessingService
             
             // Genera CSV e gestisci la risorsa
             await using var csvStream = GenerateCsvStream(data, headers);
+            var fileSizeBytes = csvStream.Length;
             
             // Upload SFTP con retry in caso di errore
             try
@@ -77,13 +79,18 @@ public class CsvProcessingService : ICsvProcessingService
             await GenerateJobLogAsync(job, logFileName, headers, data.Rows.Count);
             
             _logger.LogInformation("Job completed for table {TableName}", job.TableName);
+            var endTime = DateTime.UtcNow;
             
             return new ProcessingResult
             {
                 IsSuccess = true,
                 TableName = job.TableName,
                 RecordsProcessed = data.Rows.Count,
-                LogFileName = logFileName
+                LogFileName = logFileName,
+                FileSizeBytes = fileSizeBytes,
+                StartTime = startTime,
+                EndTime = endTime,
+                ProcessingTime = endTime - startTime
             };
         }
         catch (Exception ex)
