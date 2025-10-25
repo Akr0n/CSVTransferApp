@@ -161,7 +161,7 @@ public class IntegrationTestFixture : IDisposable
 
     public void Dispose()
     {
-        (ServiceProvider as IDisposable)?.Dispose();
+        ServiceProvider?.Dispose();
         GC.SuppressFinalize(this);
     }
 }
