@@ -89,9 +89,9 @@ jobs:
               dotnet new console -n CSVTransferApp.Console -o src\CSVTransferApp.Console --framework net9.0
               dotnet sln add src\CSVTransferApp.Console\CSVTransferApp.Console.csproj
               
-              Write-Output "✅ Basic structure created for CI"
+              Write-Output "Basic structure created for CI"
           } else {
-              Write-Output "✅ Solution file exists"
+              Write-Output "Solution file exists"
           }
 
       # ===== BUILD + TEST =====
@@ -106,30 +106,30 @@ jobs:
         shell: powershell
         run: |
           # Verifica che la solution contenga progetti di test
-          Write-Output "🔍 Checking for test projects in solution..."
+          Write-Output "Checking for test projects in solution..."
           $testProjects = Get-ChildItem -Path . -Recurse -Include "*Tests.csproj"
           
           if ($testProjects.Count -gt 0) {
-              Write-Output "✅ Found $($testProjects.Count) test project(s):"
+              Write-Output "Found $($testProjects.Count) test project(s):"
               foreach ($project in $testProjects) {
                   Write-Output "  - $($project.Name)"
               }
               
               # Esegui test con coverage - specificando la solution per includere tutti i progetti
-              Write-Output "🧪 Running tests with coverage collection..."
+              Write-Output "Running tests with coverage collection..."
               dotnet-coverage collect 'dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults --collect:"XPlat Code Coverage"' -f xml -o "coverage.opencover.xml"
               
               # Verifica che il file di coverage sia stato creato
               if (Test-Path "coverage.opencover.xml") {
                   $fileSize = (Get-Item "coverage.opencover.xml").Length
-                  Write-Output "✅ Coverage file created successfully (Size: $fileSize bytes)"
+                  Write-Output "Coverage file created successfully (Size: $fileSize bytes)"
               } else {
-                  Write-Output "⚠️ Coverage file not found, creating empty one"
+                  Write-Output "Coverage file not found, creating empty one"
               }
               
-              Write-Output "✅ Tests completed with coverage"
+              Write-Output "Tests completed with coverage"
           } else {
-              Write-Output "⚠️ No test projects found, creating dummy coverage file"
+              Write-Output "No test projects found, creating dummy coverage file"
 
               # Build a minimal OpenCover document via XmlDocument to avoid quoting issues in YAML/PowerShell
               $coverage = New-Object System.Xml.XmlDocument
