@@ -117,7 +117,7 @@ jobs:
               
               # Esegui test con coverage - specificando la solution per includere tutti i progetti
               Write-Output "🧪 Running tests with coverage collection..."
-              dotnet-coverage collect "dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults --collect:`"XPlat Code Coverage`"" -f xml -o "coverage.opencover.xml"
+              dotnet-coverage collect 'dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults --collect:"XPlat Code Coverage"' -f xml -o "coverage.opencover.xml"
               
               # Verifica che il file di coverage sia stato creato
               if (Test-Path "coverage.opencover.xml") {
