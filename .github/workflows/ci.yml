@@ -117,19 +117,43 @@ jobs:
               
               # Esegui test con coverage - specificando la solution per includere tutti i progetti
               Write-Output "Running tests with coverage collection..."
-              dotnet-coverage collect 'dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults --collect:"XPlat Code Coverage"' -f xml -o "coverage.opencover.xml"
+              dotnet-coverage collect "dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults" -f xml -o "coverage.opencover.xml"
               
               # Verifica che il file di coverage sia stato creato
               if (Test-Path "coverage.opencover.xml") {
                   $fileSize = (Get-Item "coverage.opencover.xml").Length
                   Write-Output "Coverage file created successfully (Size: $fileSize bytes)"
               } else {
-                  Write-Output "Coverage file not found, creating empty one"
+                  Write-Output "WARNING: Coverage file not found, creating empty one"
+                  
+                  # Build a minimal OpenCover document via XmlDocument to avoid quoting issues in YAML/PowerShell
+                  $coverage = New-Object System.Xml.XmlDocument
+                  $declaration = $coverage.CreateXmlDeclaration('1.0', 'utf-8', $null)
+                  $coverage.AppendChild($declaration) | Out-Null
+
+                  $session = $coverage.CreateElement('CoverageSession')
+                  $coverage.AppendChild($session) | Out-Null
+
+                  $summary = $coverage.CreateElement('Summary')
+                  $summary.SetAttribute('numSequencePoints', '0')
+                  $summary.SetAttribute('visitedSequencePoints', '0')
+                  $summary.SetAttribute('numBranchPoints', '0')
+                  $summary.SetAttribute('visitedBranchPoints', '0')
+                  $summary.SetAttribute('sequenceCoverage', '0')
+                  $summary.SetAttribute('branchCoverage', '0')
+                  $summary.SetAttribute('maxCyclomaticComplexity', '0')
+                  $summary.SetAttribute('minCyclomaticComplexity', '0')
+                  $session.AppendChild($summary) | Out-Null
+
+                  $modules = $coverage.CreateElement('Modules')
+                  $session.AppendChild($modules) | Out-Null
+
+                  $coverage.Save((Join-Path $PWD 'coverage.opencover.xml'))
               }
               
               Write-Output "Tests completed with coverage"
           } else {
-              Write-Output "No test projects found, creating dummy coverage file"
+              Write-Output "WARNING: No test projects found, creating dummy coverage file"
 
               # Build a minimal OpenCover document via XmlDocument to avoid quoting issues in YAML/PowerShell
               $coverage = New-Object System.Xml.XmlDocument
