@@ -24,7 +24,7 @@ public class CsvProcessingServiceTests
         _loggerMock = new Mock<ILogger<CsvProcessingService>>();
         
         // Create real configuration instead of mocking extension methods
-        var configData = new Dictionary<string, string>
+        var configData = new Dictionary<string, string?>
         {
             ["Processing:MaxConcurrentConnections"] = "5",
             ["Processing:MaxConcurrentFiles"] = "10"
