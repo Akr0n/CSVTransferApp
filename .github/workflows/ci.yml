@@ -173,27 +173,27 @@ jobs:
 
               # Build a minimal OpenCover document via XmlDocument to avoid quoting issues in YAML/PowerShell
               $coverage = New-Object System.Xml.XmlDocument
-              $declaration = $coverage.CreateXmlDeclaration("1.0", "utf-8", $null)
+              $declaration = $coverage.CreateXmlDeclaration('1.0', 'utf-8', $null)
               $coverage.AppendChild($declaration) | Out-Null
 
-              $session = $coverage.CreateElement("CoverageSession")
+              $session = $coverage.CreateElement('CoverageSession')
               $coverage.AppendChild($session) | Out-Null
 
-              $summary = $coverage.CreateElement("Summary")
-              $summary.SetAttribute("numSequencePoints", "0")
-              $summary.SetAttribute("visitedSequencePoints", "0")
-              $summary.SetAttribute("numBranchPoints", "0")
-              $summary.SetAttribute("visitedBranchPoints", "0")
-              $summary.SetAttribute("sequenceCoverage", "0")
-              $summary.SetAttribute("branchCoverage", "0")
-              $summary.SetAttribute("maxCyclomaticComplexity", "0")
-              $summary.SetAttribute("minCyclomaticComplexity", "0")
+              $summary = $coverage.CreateElement('Summary')
+              $summary.SetAttribute('numSequencePoints', '0')
+              $summary.SetAttribute('visitedSequencePoints', '0')
+              $summary.SetAttribute('numBranchPoints', '0')
+              $summary.SetAttribute('visitedBranchPoints', '0')
+              $summary.SetAttribute('sequenceCoverage', '0')
+              $summary.SetAttribute('branchCoverage', '0')
+              $summary.SetAttribute('maxCyclomaticComplexity', '0')
+              $summary.SetAttribute('minCyclomaticComplexity', '0')
               $session.AppendChild($summary) | Out-Null
 
-              $modules = $coverage.CreateElement("Modules")
+              $modules = $coverage.CreateElement('Modules')
               $session.AppendChild($modules) | Out-Null
 
-              $coverage.Save("coverage.opencover.xml")
+              $coverage.Save((Join-Path $PWD 'coverage.opencover.xml'))
           }
 
       - name: End SonarCloud analysis
