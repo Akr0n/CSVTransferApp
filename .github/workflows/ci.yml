@@ -1,11 +1,30 @@
-name: CI - .NET with SonarCloud Analysis
+name: CI - .NET Build & Test
 
 on:
   push:
-    branches: [ main, develop, feature/* ]
+    branches:
+      - develop
   pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [ main, develop ]
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - develop
+      - main
+    paths:
+        - '*.cs'
+        - '*.csproj'
+        - '*.ps1'
+        - '*.sln'
+        - 'src/**'
+        - 'tests/**'
+        - 'config/**'
+        - 'deploy/**'
+        - 'publish/**'
+        - 'scripts/**'
+        - '*/docker-compose.local.yml'
+        - '*/docker-compose.yml'
 
 # Security: Explicit permissions for CodeQL compliance
 permissions:
@@ -16,8 +35,8 @@ permissions:
   security-events: write # Write security analysis results
 
 jobs:
-  sonarcloud:
-    name: Build, Test & SonarCloud Analysis
+  build:
+    name: Build & Test
     runs-on: windows-latest
     permissions:
       contents: read          # Read source code
@@ -27,37 +46,18 @@ jobs:
 
     steps:
       # ===== SETUP =====
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
-        with:
-          java-version: 17
-          distribution: 'zulu' # Required for SonarCloud
 
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # Disable shallow clones for better analysis relevancy
 
       - name: Setup .NET 9.0
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
       # ===== CACHE =====
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v4
-        with:
-          path: ~\sonar\cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: Cache SonarCloud scanner
-        id: cache-sonar-scanner
-        uses: actions/cache@v4
-        with:
-          path: ~\.sonar\scanner
-          key: ${{ runner.os }}-sonar-scanner
-          restore-keys: ${{ runner.os }}-sonar-scanner
 
       - name: Cache NuGet packages
         uses: actions/cache@v4
@@ -68,13 +68,6 @@ jobs:
             ${{ runner.os }}-nuget-
 
       # ===== INSTALL TOOLS =====
-      - name: Install SonarCloud scanner for .NET
-        if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
-        shell: powershell
-        run: |
-          $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
-          New-Item -Path $scannerDir -ItemType Directory -Force
-          dotnet tool update dotnet-sonarscanner --tool-path $scannerDir
 
       - name: Install dotnet-coverage
         shell: powershell
@@ -94,27 +87,12 @@ jobs:
               dotnet new console -n CSVTransferApp.Console -o src\CSVTransferApp.Console --framework net9.0
               dotnet sln add src\CSVTransferApp.Console\CSVTransferApp.Console.csproj
               
-              Write-Output "✅ Basic structure created for CI"
+              Write-Output "Basic structure created for CI"
           } else {
-              Write-Output "✅ Solution file exists"
+              Write-Output "Solution file exists"
           }
 
-      # ===== SONAR ANALYSIS + BUILD + TEST =====
-      - name: Begin SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: powershell
-        run: |
-          # Remove sonar-project.properties file if it exists
-          if (Test-Path "sonar-project.properties") {
-              Remove-Item "sonar-project.properties" -Force
-              Write-Host "Removed sonar-project.properties file"
-          }
-          
-          $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
-          $scannerPath = Join-Path $scannerDir "dotnet-sonarscanner"
-          Write-Host "Using scanner at: $scannerPath"
-          & $scannerPath begin /k:"botlogics_CSVTransferApp" /o:"botlogics" /d:sonar.token="$env:SONAR_TOKEN" /d:sonar.host.url="https://sonarcloud.io"
+      # ===== BUILD + TEST =====
 
       - name: Restore dependencies
         run: dotnet restore --verbosity normal
@@ -125,40 +103,84 @@ jobs:
       - name: Run tests with coverage
         shell: powershell
         run: |
-          # Cerca progetti di test
+          # Verifica che la solution contenga progetti di test
+          Write-Output "Checking for test projects in solution..."
           $testProjects = Get-ChildItem -Path . -Recurse -Include "*Tests.csproj"
           
           if ($testProjects.Count -gt 0) {
-              Write-Output "Found $($testProjects.Count) test project(s)"
+              Write-Output "Found $($testProjects.Count) test project(s):"
+              foreach ($project in $testProjects) {
+                  Write-Output "  - $($project.Name)"
+              }
               
-              # Esegui test con coverage
-              dotnet-coverage collect "dotnet test --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults" -f xml -o "coverage.opencover.xml"
+              # Esegui test con coverage - specificando la solution per includere tutti i progetti
+              Write-Output "Running tests with coverage collection..."
+            # Ensure dotnet global tools are on PATH (Windows runners)
+            $toolsPath = Join-Path $env:USERPROFILE ".dotnet\tools"
+            if (Test-Path $toolsPath) { $env:PATH = "$toolsPath;$env:PATH" }
+              dotnet-coverage collect "dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults" -f xml -o "coverage.opencover.xml"
               
-              Write-Output "✅ Tests completed with coverage"
+              # Verifica che il file di coverage sia stato creato
+              if (Test-Path "coverage.opencover.xml") {
+                  $fileSize = (Get-Item "coverage.opencover.xml").Length
+                  Write-Output "Coverage file created successfully (Size: $fileSize bytes)"
+              } else {
+                  Write-Output "WARNING: Coverage file not found, creating empty one"
+                  
+                  # Build a minimal OpenCover document via XmlDocument to avoid quoting issues in YAML/PowerShell
+                  $coverage = New-Object System.Xml.XmlDocument
+                  $declaration = $coverage.CreateXmlDeclaration('1.0', 'utf-8', $null)
+                  $coverage.AppendChild($declaration) | Out-Null
+
+                  $session = $coverage.CreateElement('CoverageSession')
+                  $coverage.AppendChild($session) | Out-Null
+
+                  $summary = $coverage.CreateElement('Summary')
+                  $summary.SetAttribute('numSequencePoints', '0')
+                  $summary.SetAttribute('visitedSequencePoints', '0')
+                  $summary.SetAttribute('numBranchPoints', '0')
+                  $summary.SetAttribute('visitedBranchPoints', '0')
+                  $summary.SetAttribute('sequenceCoverage', '0')
+                  $summary.SetAttribute('branchCoverage', '0')
+                  $summary.SetAttribute('maxCyclomaticComplexity', '0')
+                  $summary.SetAttribute('minCyclomaticComplexity', '0')
+                  $session.AppendChild($summary) | Out-Null
+
+                  $modules = $coverage.CreateElement('Modules')
+                  $session.AppendChild($modules) | Out-Null
+
+                  $coverage.Save((Join-Path $PWD 'coverage.opencover.xml'))
+              }
+              
+              Write-Output "Tests completed with coverage"
           } else {
-              Write-Output "⚠️ No test projects found, creating dummy coverage file"
-              
-              # Crea file coverage vuoto per SonarCloud
-              $coverageXml = @"
-          <?xml version="1.0" encoding="utf-8"?>
-          <CoverageSession>
-            <Summary numSequencePoints="0" visitedSequencePoints="0" numBranchPoints="0" visitedBranchPoints="0" sequenceCoverage="0" branchCoverage="0" maxCyclomaticComplexity="0" minCyclomaticComplexity="0" />
-            <Modules>
-            </Modules>
-          </CoverageSession>
-          "@
-              Set-Content -Path "coverage.opencover.xml" -Value $coverageXml
+              Write-Output "WARNING: No test projects found, creating dummy coverage file"
+
+              # Build a minimal OpenCover document via XmlDocument to avoid quoting issues in YAML/PowerShell
+              $coverage = New-Object System.Xml.XmlDocument
+              $declaration = $coverage.CreateXmlDeclaration('1.0', 'utf-8', $null)
+              $coverage.AppendChild($declaration) | Out-Null
+
+              $session = $coverage.CreateElement('CoverageSession')
+              $coverage.AppendChild($session) | Out-Null
+
+              $summary = $coverage.CreateElement('Summary')
+              $summary.SetAttribute('numSequencePoints', '0')
+              $summary.SetAttribute('visitedSequencePoints', '0')
+              $summary.SetAttribute('numBranchPoints', '0')
+              $summary.SetAttribute('visitedBranchPoints', '0')
+              $summary.SetAttribute('sequenceCoverage', '0')
+              $summary.SetAttribute('branchCoverage', '0')
+              $summary.SetAttribute('maxCyclomaticComplexity', '0')
+              $summary.SetAttribute('minCyclomaticComplexity', '0')
+              $session.AppendChild($summary) | Out-Null
+
+              $modules = $coverage.CreateElement('Modules')
+              $session.AppendChild($modules) | Out-Null
+
+              $coverage.Save((Join-Path $PWD 'coverage.opencover.xml'))
           }
 
-      - name: End SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: powershell
-        run: |
-          $scannerDir = Join-Path $env:USERPROFILE ".sonar\scanner"
-          $scannerPath = Join-Path $scannerDir "dotnet-sonarscanner"
-          Write-Host "Using scanner at: $scannerPath"
-          & $scannerPath end /d:sonar.token="$env:SONAR_TOKEN"
 
       # ===== UPLOAD ARTIFACTS =====
       - name: Upload test results
@@ -168,7 +190,7 @@ jobs:
           name: test-results-${{ runner.os }}
           path: |
             TestResults/*.trx
-            coverage.opencover.xml
+          if-no-files-found: warn
           retention-days: 30
 
       # ===== BUILD SUMMARY =====
@@ -176,17 +198,11 @@ jobs:
         if: always()
         shell: powershell
         run: |
-          $summary = @"
-          ## SonarCloud Analysis Results
-
-          ### Analysis Information:
-          - **Project**: ${{ github.repository }}
-          - **Branch**: ${{ github.ref_name }}
-          - **Commit**: ${{ github.sha }}
-
-          **[View Results on SonarCloud](https://sonarcloud.io/project/overview?id=${{ github.repository_owner }}_${{ github.event.repository.name }})**
-          "@
-          $summary | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+          Write-Output "## Build & Test Summary" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+          Write-Output "" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+          Write-Output "- Project: $env:GITHUB_REPOSITORY" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+          Write-Output "- Branch: $env:GITHUB_REF_NAME" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
+          Write-Output "- Commit: $env:GITHUB_SHA" | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY -Encoding UTF8
 
   # ===== JOB PARALLELO PER LINUX =====
   build-linux:
@@ -198,12 +214,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup .NET 9.0
-        uses: actions/setup-dotnet@v5
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 

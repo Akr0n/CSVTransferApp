@@ -4,6 +4,19 @@ on:
   push:
     branches:
       - develop
+    paths:
+        - '*.cs'
+        - '*.csproj'
+        - '*.ps1'
+        - '*.sln'
+        - 'src/**'
+        - 'tests/**'
+        - 'config/**'
+        - 'deploy/**'
+        - 'publish/**'
+        - 'scripts/**'
+        - '*/docker-compose.local.yml'
+        - '*/docker-compose.yml'
 
 permissions:
   contents: write

@@ -6,6 +6,19 @@ on:
       - closed
     branches:
       - main
+    paths:
+        - '**/*.cs'
+        - '**/*.csproj'
+        - '**/*.ps1'
+        - '**/*.sln'
+        - 'src/**'
+        - 'tests/**'
+        - 'config/**'
+        - 'deploy/**'
+        - 'publish/**'
+        - 'scripts/**'
+        - '*/docker-compose.local.yml'
+        - '*/docker-compose.yml'
   push:
     tags:
       - 'v*'
@@ -93,6 +106,13 @@ jobs:
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
         shell: pwsh
         run: |
+          # Debug information
+          Write-Host "🔍 Debug Information:" -ForegroundColor Cyan
+          Write-Host "  - Event: ${{ github.event_name }}" -ForegroundColor White
+          Write-Host "  - PR Merged: ${{ github.event.pull_request.merged }}" -ForegroundColor White
+          Write-Host "  - Base Ref: ${{ github.event.pull_request.base.ref }}" -ForegroundColor White
+          Write-Host "  - Repository: ${{ github.repository }}" -ForegroundColor White
+          
           # Wait for any pending CI checks before proceeding
           Write-Host "🕐 Waiting for CI checks to complete..." -ForegroundColor Yellow
           Start-Sleep -Seconds 60  # Wait 1 minute for CI to settle

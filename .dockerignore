@@ -25,7 +25,6 @@ scripts/
 # Development config files
 **/appsettings.Development.json
 **/appsettings.Test.json
-sonar-project.properties
 .editorconfig
 README.md
 *.md

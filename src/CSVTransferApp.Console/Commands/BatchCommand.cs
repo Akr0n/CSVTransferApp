@@ -19,7 +19,7 @@ public class BatchCommand : ICommand
     {
         if (!arguments.ContainsKey("file"))
         {
-            _logger.LogError("--file parameter is required for batch command");
+            _logger.LogError("--file parameter is required for batch command", Array.Empty<object>());
             return 1;
         }
 
@@ -37,7 +37,7 @@ public class BatchCommand : ICommand
 
             if (jobs == null || !jobs.Any())
             {
-                _logger.LogError("No valid jobs found in batch file");
+                _logger.LogError("No valid jobs found in batch file", Array.Empty<object>());
                 return 1;
             }
 
@@ -55,7 +55,7 @@ public class BatchCommand : ICommand
             foreach (var failedResult in results.Where(r => !r.IsSuccess))
             {
                 _logger.LogError("Failed job - Table: {TableName}, Error: {Error}",
-                    failedResult.TableName, failedResult.ErrorMessage);
+                    failedResult.TableName, failedResult.ErrorMessage ?? string.Empty);
             }
 
             return failureCount == 0 ? 0 : 1;

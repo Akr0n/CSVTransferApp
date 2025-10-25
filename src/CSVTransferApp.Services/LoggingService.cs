@@ -44,6 +44,13 @@ public class LoggingService : ILoggerService
         var logEntry = string.Format(LoggingConstants.LogMessageFormat, 
             DateTime.UtcNow, "INFO", message);
         
+        // Ensure directory exists
+        var directory = Path.GetDirectoryName(logFile);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+        
         await File.AppendAllTextAsync(logFile, logEntry + Environment.NewLine);
     }
 }

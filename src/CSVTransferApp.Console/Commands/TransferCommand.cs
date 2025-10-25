@@ -20,7 +20,7 @@ public class TransferCommand : ICommand
         {
             foreach (var error in validationErrors)
             {
-                _logger.LogError(error);
+                _logger.LogError(error, Array.Empty<object>());
             }
             return 1;
         }
@@ -45,7 +45,7 @@ public class TransferCommand : ICommand
         }
         else
         {
-            _logger.LogError("Transfer failed for table {TableName}: {Error}", result.TableName, result.ErrorMessage);
+            _logger.LogError("Transfer failed for table {TableName}: {Error}", result.TableName, result.ErrorMessage ?? string.Empty);
             return 1;
         }
     }
