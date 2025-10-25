@@ -30,7 +30,7 @@ public class CsvProcessingServiceTests
             ["Processing:MaxConcurrentFiles"] = "10"
         };
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(configData!)
+            .AddInMemoryCollection(configData)
             .Build();
 
         _service = new CsvProcessingService(
