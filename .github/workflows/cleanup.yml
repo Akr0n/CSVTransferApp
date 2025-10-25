@@ -193,7 +193,7 @@ jobs:
           Write-Host "🏁 RIEPILOGO OPERAZIONE COMPLETATA" -ForegroundColor Magenta
           Write-Host "==========================================" -ForegroundColor Magenta
           Write-Host "📂 Repository: ${{ steps.repo-info.outputs.owner }}/${{ steps.repo-info.outputs.repo }}" -ForegroundColor Cyan
-          Write-Host "📅 Data/Ora: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')" -ForegroundColor Gray
+          Write-Host "📅 Data/Ora: $((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd HH:mm:ss') + ' UTC')" -ForegroundColor Gray
           Write-Host ""
           Write-Host "📊 RISULTATI:" -ForegroundColor White
           
