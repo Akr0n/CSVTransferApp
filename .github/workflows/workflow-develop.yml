@@ -4,6 +4,19 @@ on:
   push:
     branches:
       - develop
+    paths:
+        - '*.cs'
+        - '*.csproj'
+        - '*.ps1'
+        - '*.sln'
+        - 'src/**'
+        - 'tests/**'
+        - 'config/**'
+        - 'deploy/**'
+        - 'publish/**'
+        - 'scripts/**'
+        - '*/docker-compose.local.yml'
+        - '*/docker-compose.yml'
 
 permissions:
   contents: write
@@ -57,7 +70,7 @@ jobs:
         continue-on-error: false
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always() && hashFiles('TestResults/*.trx') != ''
         with:
           name: test-results
@@ -118,7 +131,7 @@ jobs:
 
       - name: Upload publish artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: publish-artifacts-${{ github.run_id }}
           path: |
@@ -446,7 +459,7 @@ jobs:
 
       # ===== POST-BUILD TASKS =====
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: csvtransferapp-builds-${{ env.NEWVERSION }}
           path: |

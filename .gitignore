@@ -46,9 +46,24 @@ appsettings.Production.json
 *.key
 *.pem
 
+# Environment files with secrets
+.env
+# Keep example template tracked for documentation
+!.env.example
+.env.local
+.env.production
+.env.staging
+.env.development
+
 # Log files
 logs/
 *.log
+
+# Test and build artifacts
+TestResults/
+publish/
+temp/
+coverage/
 
 # OS generated files
 .DS_Store

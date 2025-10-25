@@ -11,7 +11,7 @@ public class StringExtensionsTests
     [InlineData("", true)]
     [InlineData("   ", true)]
     [InlineData("test", false)]
-    public void IsNullOrWhiteSpace_ShouldReturnCorrectResult(string input, bool expected)
+    public void IsNullOrWhiteSpace_ShouldReturnCorrectResult(string? input, bool expected)
     {
         // Act
         var result = input.IsNullOrWhiteSpace();

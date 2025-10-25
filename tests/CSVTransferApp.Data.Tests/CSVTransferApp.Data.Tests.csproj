@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\CSVTransferApp.Data\CSVTransferApp.Data.csproj" />
+    <ProjectReference Include="..\..\src\CSVTransferApp.Core\CSVTransferApp.Core.csproj" />
     <ProjectReference Include="..\..\src\CSVTransferApp.Services\CSVTransferApp.Services.csproj" />
     <ProjectReference Include="..\CSVTransferApp.Core.Tests\CSVTransferApp.Core.Tests.csproj" />
   </ItemGroup>

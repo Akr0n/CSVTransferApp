@@ -10,6 +10,8 @@ namespace CSVTransferApp.Data.Configuration;
 
 public class DatabaseConnectionManager : IDatabaseConnectionManager, IDisposable
 {
+    private bool _disposed;
+
     public void ReleaseConnection(string connectionName)
     {
         if (string.IsNullOrEmpty(connectionName))
@@ -96,21 +98,30 @@ public class DatabaseConnectionManager : IDatabaseConnectionManager, IDisposable
             return false;
         }
     }
-
     public void Dispose()
     {
-        foreach (var connection in _activeConnections.Values)
-        {
-            try
-            {
-                if (connection.State != ConnectionState.Closed)
-                    connection.Close();
-                connection.Dispose();
-            }
-            catch { /* Ignore disposal errors */ }
-        }
-        
-        _activeConnections.Clear();
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed) return;
+        if (disposing)
+        {
+            foreach (var connection in _activeConnections.Values)
+            {
+                try
+                {
+                    if (connection.State != ConnectionState.Closed)
+                        connection.Close();
+                    connection.Dispose();
+                }
+                catch { /* Ignore disposal errors */ }
+            }
+            _activeConnections.Clear();
+        }
+        _disposed = true;
+    }
+
 }

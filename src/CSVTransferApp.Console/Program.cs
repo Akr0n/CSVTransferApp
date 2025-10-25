@@ -11,12 +11,27 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+        
+        var configurationBuilder = new ConfigurationBuilder()
             .AddJsonFile("appsettings.json")
+            .AddJsonFile($"appsettings.{environment}.json", optional: true)
+            // Load connection files from working directory
+            .AddJsonFile("database-connections.json", optional: true)
+            .AddJsonFile($"database-connections.{environment}.json", optional: true)
+            .AddJsonFile("sftp-connections.json", optional: true)
+            .AddJsonFile($"sftp-connections.{environment}.json", optional: true)
+            // Also attempt to load from ./config folder to support repository layout
+            .AddJsonFile("config/database-connections.json", optional: true)
+            .AddJsonFile($"config/database-connections.{environment}.json", optional: true)
+            .AddJsonFile("config/sftp-connections.json", optional: true)
+            .AddJsonFile($"config/sftp-connections.{environment}.json", optional: true)
+            // Load environment variables and command line last
             .AddEnvironmentVariables()
             .AddEnvironmentVariablePlaceholderResolver(skipUnresolved: false)
-            .AddCommandLine(args)
-            .Build();
+            .AddCommandLine(args);
+
+        var configuration = configurationBuilder.Build();
 
         var services = new ServiceCollection();
         ConfigureServices(services, configuration);

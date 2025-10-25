@@ -23,9 +23,10 @@ public class HeaderOverride
 
     /// <summary>
     /// Tipi di dato per le colonne (per validazione e formattazione)
-    /// Key = nome colonna CSV, Value = tipo di dato
+    /// Key = nome colonna CSV, Value = tipo di dato (string)
+    /// Nota: usiamo string per compatibilità con i file JSON di override
     /// </summary>
-    public Dictionary<string, Type> DataTypes { get; set; } = new();
+    public Dictionary<string, string> DataTypes { get; set; } = new();
 
     /// <summary>
     /// Timestamp ultima modifica del file override

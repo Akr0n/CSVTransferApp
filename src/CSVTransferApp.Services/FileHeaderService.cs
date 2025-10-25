@@ -7,15 +7,13 @@ namespace CSVTransferApp.Services;
 
 public class FileHeaderService : IFileHeaderService
 {
-    private readonly IConfigurationService _configurationService;
     private readonly ILoggerService _logger;
     private readonly string _overridePath;
 
     public FileHeaderService(IConfigurationService configurationService, ILoggerService logger)
     {
-        _configurationService = configurationService;
         _logger = logger;
-        _overridePath = _configurationService.GetValue(ConfigurationKeys.ProcessingKeys.HeaderOverridePath, "./config/header-overrides");
+        _overridePath = configurationService.GetValue(ConfigurationKeys.ProcessingKeys.HeaderOverridePath, "./config/header-overrides");
         
         // Ensure directory exists
         Directory.CreateDirectory(_overridePath);

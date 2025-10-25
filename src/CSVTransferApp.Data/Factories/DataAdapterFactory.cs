@@ -27,8 +27,7 @@ public class DataAdapterFactory : IDataAdapterFactory
 
     public IDbDataAdapter CreateDataAdapter(string providerName, IDbCommand command)
     {
-        if (command == null)
-            throw new ArgumentNullException(nameof(command));
+        ArgumentNullException.ThrowIfNull(command);
 
         if (string.IsNullOrEmpty(providerName))
             throw new ArgumentException("Provider name cannot be null or empty", nameof(providerName));
@@ -57,6 +56,4 @@ public class DataAdapterFactory : IDataAdapterFactory
     {
         return !string.IsNullOrEmpty(providerName) && _providers.ContainsKey(providerName);
     }
-
-
 }

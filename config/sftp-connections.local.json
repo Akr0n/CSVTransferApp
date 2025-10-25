@@ -1,0 +1,47 @@
+{
+  "ConnectionTemplates": {
+    "StandardSftp": {
+      "Port": 22,
+      "ConnectionTimeout": 30,
+      "AuthenticationMethods": [
+        "Password"
+      ]
+    }
+  },
+  "ConnectionProfiles": {
+    "Local": {
+      "LocalSFTP": {
+        "Host": "localhost",
+        "Port": 2222,
+        "Username": "csvapp",
+        "Password": "${SFTP_PASSWORD}",
+        "RemotePath": "/upload",
+        "ConnectionTimeout": 10,
+        "IsEnabled": true,
+        "UseCompression": false
+      }
+    }
+  },
+  "CommonSettings": {
+    "DefaultConnectionTimeout": 30,
+    "KeepAliveInterval": 60,
+    "MaxConcurrentConnections": 10,
+    "EnableConnectionReuse": true,
+    "RetryOnFailure": true,
+    "MaxRetryCount": 3,
+    "RetryDelay": 5000,
+    "BufferSize": 32768,
+    "EnableCompression": false,
+    "CompressionLevel": 6
+  },
+  "SecuritySettings": {
+    "RequireHostKeyVerification": false,
+    "AllowedHostKeyTypes": [
+      "ssh-rsa",
+      "ssh-ed25519"
+    ],
+    "MinimumKeySize": 2048,
+    "EncryptPasswords": false,
+    "SecureKeyStorage": false
+  }
+}

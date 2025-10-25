@@ -2,11 +2,16 @@ using Xunit;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using CSVTransferApp.Console;
 using CSVTransferApp.Console.DependencyInjection;
+using CSVTransferApp.Console.Parsers;
 using CSVTransferApp.Core.Models;
 using CSVTransferApp.Core.Interfaces;
+using CSVTransferApp.Infrastructure.Health;
 using CSVTransferApp.Core.Tests.TestData;
+using CSVTransferApp.Integration.Tests.Mocks;
+using CSVTransferApp.Services;
 
 namespace CSVTransferApp.Integration.Tests;
 
@@ -111,11 +116,23 @@ public class IntegrationTestFixture : IDisposable
         var services = new ServiceCollection();
         
         services.AddSingleton<IConfiguration>(configuration);
-        services.AddCsvTransferServices(configuration);
         
-        // Replace real services with mocks for integration testing
+        // Add logging
+        services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Information));
+        
+        // Add mocks first
         services.AddSingleton<IDatabaseService, MockDatabaseService>();
         services.AddSingleton<ISftpService, MockSftpService>();
+        
+        // Use MockCsvProcessingService instead of real one
+        services.AddScoped<ICsvProcessingService, MockCsvProcessingService>();
+        
+        // Add other required services from Console DI but not overlapping ones
+        services.AddSingleton<ILoggerService, LoggingService>();
+        services.AddSingleton<IConfigurationService, ConfigurationService>();
+        services.AddSingleton<ICommandLineParser, CommandLineParser>();
+        services.AddSingleton<IHealthCheckService, FileHealthCheckService>();
+        services.AddSingleton<Application>();
 
         ServiceProvider = services.BuildServiceProvider();
         Application = ServiceProvider.GetRequiredService<Application>();
@@ -144,7 +161,10 @@ public class IntegrationTestFixture : IDisposable
 
     public void Dispose()
     {
-        ServiceProvider?.Dispose();
+        if (ServiceProvider is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
         GC.SuppressFinalize(this);
     }
 }

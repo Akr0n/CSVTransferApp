@@ -6,6 +6,19 @@ on:
       - closed
     branches:
       - main
+    paths:
+        - '**/*.cs'
+        - '**/*.csproj'
+        - '**/*.ps1'
+        - '**/*.sln'
+        - 'src/**'
+        - 'tests/**'
+        - 'config/**'
+        - 'deploy/**'
+        - 'publish/**'
+        - 'scripts/**'
+        - '*/docker-compose.local.yml'
+        - '*/docker-compose.yml'
   push:
     tags:
       - 'v*'
@@ -21,7 +34,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
-      actions: write
+      actions: read
+      checks: read
+      statuses: read
+      pull-requests: read
       
     strategy:
       matrix:
@@ -41,28 +57,62 @@ jobs:
 
       - name: Wait for CodeQL Analysis to Complete
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-        uses: fountainhead/action-wait-for-check@v1.2.0
-        id: wait-for-codeql
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          checkName: "CodeQL"
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
-          intervalSeconds: 30
-          timeoutSeconds: 1200 # 20 minuti timeout
-        continue-on-error: true # Continue even if CodeQL check fails/times out
-
-      - name: Alternative Wait Strategy (PowerShell)
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main' && steps.wait-for-codeql.outcome == 'failure'
         shell: pwsh
         run: |
-          Write-Host "⚠️ CodeQL wait action failed, using alternative strategy..." -ForegroundColor Yellow
-          Write-Host "🕐 Waiting 5 minutes for CodeQL to complete..." -ForegroundColor Cyan
-          Start-Sleep -Seconds 300  # Wait 5 minutes
+          Write-Host "🕐 Waiting for CodeQL analysis to complete..." -ForegroundColor Cyan
+          $maxWaitMinutes = 20
+          $checkInterval = 30
+          $maxIterations = ($maxWaitMinutes * 60) / $checkInterval
+          $iteration = 0
+          $codeqlComplete = $false
+          
+          while ($iteration -lt $maxIterations -and -not $codeqlComplete) {
+            try {
+              Write-Host "🔍 Checking CodeQL status (attempt $($iteration + 1)/$maxIterations)..." -ForegroundColor Yellow
+              
+              # Check if CodeQL workflow is complete
+              $response = gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | select(.name=="CodeQL" and .head_sha=="${{ github.event.pull_request.merge_commit_sha || github.sha }}") | .status'
+              
+              if ($response -eq "completed") {
+                Write-Host "✅ CodeQL analysis completed!" -ForegroundColor Green
+                $codeqlComplete = $true
+              } else {
+                Write-Host "⏳ CodeQL still running, waiting $checkInterval seconds..." -ForegroundColor Yellow
+                Start-Sleep -Seconds $checkInterval
+                $iteration++
+              }
+            }
+            catch {
+              Write-Host "⚠️ Error checking CodeQL status: $($_.Exception.Message)" -ForegroundColor Yellow
+              Write-Host "📝 Continuing with fallback wait..." -ForegroundColor Cyan
+              break
+            }
+          }
+          
+          if (-not $codeqlComplete) {
+            Write-Host "⏰ CodeQL wait timeout reached, proceeding..." -ForegroundColor Yellow
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Additional Safety Wait
+        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+        shell: pwsh
+        run: |
+          Write-Host "🛡️ Additional safety wait for any remaining checks..." -ForegroundColor Cyan
+          Start-Sleep -Seconds 60  # Additional 1 minute wait
 
       - name: Create and push production tag from latest dev version
         if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
         shell: pwsh
         run: |
+          # Debug information
+          Write-Host "🔍 Debug Information:" -ForegroundColor Cyan
+          Write-Host "  - Event: ${{ github.event_name }}" -ForegroundColor White
+          Write-Host "  - PR Merged: ${{ github.event.pull_request.merged }}" -ForegroundColor White
+          Write-Host "  - Base Ref: ${{ github.event.pull_request.base.ref }}" -ForegroundColor White
+          Write-Host "  - Repository: ${{ github.repository }}" -ForegroundColor White
+          
           # Wait for any pending CI checks before proceeding
           Write-Host "🕐 Waiting for CI checks to complete..." -ForegroundColor Yellow
           Start-Sleep -Seconds 60  # Wait 1 minute for CI to settle
@@ -213,7 +263,7 @@ jobs:
           tar -czf CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.tar.gz -C publish/${{ matrix.artifact }} .
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: csvtransferapp-${{ matrix.artifact }}
           path: |
@@ -233,13 +283,13 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: csvtransferapp-win-x64
           path: ./artifacts/win
 
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: csvtransferapp-linux-x64
           path: ./artifacts/linux
