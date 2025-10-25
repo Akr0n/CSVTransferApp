@@ -169,7 +169,7 @@ jobs:
               
               Write-Output "✅ Tests completed with coverage"
           } else {
-              Write-Output "⚠️ No test projects found, creating dummy coverage file"
+              Write-Output "⚠️ No test projects found, creating dummy coverage file""
 
               # Build a minimal OpenCover document via XmlDocument to avoid quoting issues in YAML/PowerShell
               $coverage = New-Object System.Xml.XmlDocument
