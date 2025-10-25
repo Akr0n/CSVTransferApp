@@ -7,10 +7,10 @@ on:
     branches:
       - main
     paths:
-        - '*.cs'
-        - '*.csproj'
-        - '*.ps1'
-        - '*.sln'
+        - '**/*.cs'
+        - '**/*.csproj'
+        - '**/*.ps1'
+        - '**/*.sln'
         - 'src/**'
         - 'tests/**'
         - 'config/**'
