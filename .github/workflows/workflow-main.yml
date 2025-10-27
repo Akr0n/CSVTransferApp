@@ -81,7 +81,21 @@ jobs:
             git tag $tag
             $maxRetries = 5; $retryCount = 0; $success = $false
             while (-not $success -and $retryCount -lt $maxRetries) {
-              try { Write-Host "[prepare-release] Pushing tag $tag (attempt $($retryCount+1)/$maxRetries)" -ForegroundColor Cyan; git push origin $tag; $success = $true } catch { $retryCount++; if ($retryCount -lt $maxRetries) { $wait = [Math]::Pow(2, $retryCount) * 30; Write-Host "[prepare-release] Push failed, retrying in $wait seconds..." -ForegroundColor Yellow; Start-Sleep -Seconds $wait } else { Write-Host "[prepare-release] Push failed after $maxRetries attempts" -ForegroundColor Red; throw $_ } }
+              try {
+                Write-Host "[prepare-release] Pushing tag $tag (attempt $($retryCount+1)/$maxRetries)" -ForegroundColor Cyan
+                git push origin $tag
+                $success = $true
+              } catch {
+                $retryCount++
+                if ($retryCount -lt $maxRetries) {
+                  $wait = [Math]::Pow(2, $retryCount) * 30
+                  Write-Host "[prepare-release] Push failed, retrying in $wait seconds..." -ForegroundColor Yellow
+                  Start-Sleep -Seconds $wait
+                } else {
+                  Write-Host "[prepare-release] Push failed after $maxRetries attempts" -ForegroundColor Red
+                  throw $_
+                }
+              }
             }
           } else {
             Write-Host "[prepare-release] Tag $tag already exists, skipping push" -ForegroundColor Yellow
