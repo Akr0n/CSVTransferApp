@@ -124,8 +124,4 @@ public class DatabaseConnectionManager : IDatabaseConnectionManager, IDisposable
         _disposed = true;
     }
 
-    ~DatabaseConnectionManager()
-    {
-        Dispose(false);
-    }
 }

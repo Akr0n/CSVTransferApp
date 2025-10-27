@@ -7,10 +7,10 @@ on:
     branches:
       - main
     paths:
-        - '*.cs'
-        - '*.csproj'
-        - '*.ps1'
-        - '*.sln'
+        - '**/*.cs'
+        - '**/*.csproj'
+        - '**/*.ps1'
+        - '**/*.sln'
         - 'src/**'
         - 'tests/**'
         - 'config/**'
@@ -59,6 +59,7 @@ jobs:
             Write-Host "[prepare-release] No -dev tags found. Defaulting to 1.0.0" -ForegroundColor Yellow
             $new_version = "1.0.0"
           } else {
+            $highest_version = @{ major = 0; minor = 0; patch = 0 }
             $highest_version = @{ major = 0; minor = 0; patch = 0 }
             foreach ($tag in $dev_tags) {
               if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
@@ -203,7 +204,7 @@ jobs:
           cp "CSVTransferApp-${RELEASE_TAG}-${{ matrix.artifact }}.tar.gz" "CSVTransferApp-latest-${{ matrix.artifact }}.tar.gz"
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: csvtransferapp-${{ matrix.artifact }}
           path: |
@@ -223,13 +224,13 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: csvtransferapp-win-x64
           path: ./artifacts/win
 
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: csvtransferapp-linux-x64
           path: ./artifacts/linux
