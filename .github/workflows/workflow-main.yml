@@ -202,11 +202,11 @@ jobs:
         shell: pwsh
         run: |
           Push-Location -Path "publish/${{ matrix.artifact }}"
-          $out = "../../CSVTransferApp-$env:RELEASE_TAG-${{ matrix.artifact }}.zip"
+          $out = "../../CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.zip"
           Compress-Archive -Path * -DestinationPath $out -Force
           Pop-Location
           # Create a convenience copy with a stable name
-          Copy-Item -Path "CSVTransferApp-$env:RELEASE_TAG-${{ matrix.artifact }}.zip" -Destination "publish/CSVTransferApp-latest-${{ matrix.artifact }}.zip" -Force
+          Copy-Item -Path "CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.zip" -Destination "publish/CSVTransferApp-latest-${{ matrix.artifact }}.zip" -Force
 
       - name: Create release package (Linux)
         if: ${{ matrix.runtime == 'linux-x64' }}
