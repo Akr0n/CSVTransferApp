@@ -57,16 +57,16 @@ jobs:
           if ($dev_tags.Count -eq 0) {
             $new_version = "1.0.0"
           } else {
-            $highest_version = @{major=0; minor=0; patch=0}
+            $highest_version = @{ major = 0; minor = 0; patch = 0 }
             foreach ($tag in $dev_tags) {
               if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
                 $major = [int]$matches[1]; $minor = [int]$matches[2]; $patch = [int]$matches[3]
-                if (($major -gt $highest_version.major) -or ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
-                  $highest_version.major = $major; $highest_version.minor = $minor; $highest_version.patch = $patch
+                if (($major -gt $highest_version['major']) -or ($major -eq $highest_version['major'] -and $minor -gt $highest_version['minor']) -or ($major -eq $highest_version['major'] -and $minor -eq $highest_version['minor'] -and $patch -gt $highest_version['patch'])) {
+                  $highest_version['major'] = $major; $highest_version['minor'] = $minor; $highest_version['patch'] = $patch
                 }
               }
             }
-            $new_version = "$($highest_version.major).$($highest_version.minor).$($highest_version.patch)"
+            $new_version = "$($highest_version['major']).$($highest_version['minor']).$($highest_version['patch'])"
           }
           $tag = "v$new_version"
           if (-not ($all_tags -contains $tag)) {
