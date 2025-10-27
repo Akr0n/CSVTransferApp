@@ -45,11 +45,14 @@ public static class TestDatabaseHelper
         return table;
     }
 
+    // Returns sanitized, non-sensitive mock connection strings for tests only.
+    // No real credentials are embedded; providers that normally require passwords
+    // are intentionally returned without a password segment.
     public static string GetMockConnectionString(string provider) => provider switch
     {
-        "Oracle" => "Data Source=mock:1521/test;User Id=mock;Password=mock;",
-        "SqlServer" => "Server=mock;Database=mock;Integrated Security=true;",
-        "PostgreSQL" => "Host=mock;Database=mock;Username=mock;Password=mock",
+        "Oracle" => "Data Source=mock:1521/test;User Id=mock;", // no password
+        "SqlServer" => "Server=mock;Database=mock;Integrated Security=true;", // no password by design
+        "PostgreSQL" => "Host=mock;Database=mock;Username=mock", // no password
         _ => "mock://connection"
     };
 

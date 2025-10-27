@@ -30,7 +30,65 @@ permissions:
   actions: write
 
 jobs:
+  prepare-release:
+    name: Prepare tag and release context
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: read
+    outputs:
+      tag: ${{ steps.set_tag_pr.outputs.tag || steps.set_tag_tagref.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Compute and push production tag (PR merge to main)
+        if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+        id: set_tag_pr
+        shell: pwsh
+        run: |
+          git fetch --tags
+          $all_tags = git tag --list
+          $dev_tags = @()
+          foreach ($tag in $all_tags) { if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') { $dev_tags += $tag } }
+          if ($dev_tags.Count -eq 0) {
+            $new_version = "1.0.0"
+          } else {
+            $highest_version = @{major=0; minor=0; patch=0}
+            foreach ($tag in $dev_tags) {
+              if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
+                $major = [int]$matches[1]; $minor = [int]$matches[2]; $patch = [int]$matches[3]
+                if (($major -gt $highest_version.major) -or ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
+                  $highest_version.major = $major; $highest_version.minor = $minor; $highest_version.patch = $patch
+                }
+              }
+            }
+            $new_version = "$($highest_version.major).$($highest_version.minor).$($highest_version.patch)"
+          }
+          $tag = "v$new_version"
+          if (-not ($all_tags -contains $tag)) {
+            git config user.email "csvtransferapp.bot@gmail.com"
+            git config user.name "CSV Transfer App Bot"
+            git tag $tag
+            $maxRetries = 5; $retryCount = 0; $success = $false
+            while (-not $success -and $retryCount -lt $maxRetries) {
+              try { git push origin $tag; $success = $true } catch { $retryCount++; if ($retryCount -lt $maxRetries) { Start-Sleep -Seconds ([Math]::Pow(2, $retryCount) * 30) } else { throw $_ } }
+            }
+          }
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Use existing tag from ref (tag push)
+        if: startsWith(github.ref, 'refs/tags/')
+        id: set_tag_tagref
+        shell: bash
+        run: |
+          echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+
   build-release:
+    needs: prepare-release
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
@@ -54,133 +112,6 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-
-      - name: Wait for CodeQL Analysis to Complete
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-        shell: pwsh
-        run: |
-          Write-Host "🕐 Waiting for CodeQL analysis to complete..." -ForegroundColor Cyan
-          $maxWaitMinutes = 20
-          $checkInterval = 30
-          $maxIterations = ($maxWaitMinutes * 60) / $checkInterval
-          $iteration = 0
-          $codeqlComplete = $false
-          
-          while ($iteration -lt $maxIterations -and -not $codeqlComplete) {
-            try {
-              Write-Host "🔍 Checking CodeQL status (attempt $($iteration + 1)/$maxIterations)..." -ForegroundColor Yellow
-              
-              # Check if CodeQL workflow is complete
-              $response = gh api repos/${{ github.repository }}/actions/runs --jq '.workflow_runs[] | select(.name=="CodeQL" and .head_sha=="${{ github.event.pull_request.merge_commit_sha || github.sha }}") | .status'
-              
-              if ($response -eq "completed") {
-                Write-Host "✅ CodeQL analysis completed!" -ForegroundColor Green
-                $codeqlComplete = $true
-              } else {
-                Write-Host "⏳ CodeQL still running, waiting $checkInterval seconds..." -ForegroundColor Yellow
-                Start-Sleep -Seconds $checkInterval
-                $iteration++
-              }
-            }
-            catch {
-              Write-Host "⚠️ Error checking CodeQL status: $($_.Exception.Message)" -ForegroundColor Yellow
-              Write-Host "📝 Continuing with fallback wait..." -ForegroundColor Cyan
-              break
-            }
-          }
-          
-          if (-not $codeqlComplete) {
-            Write-Host "⏰ CodeQL wait timeout reached, proceeding..." -ForegroundColor Yellow
-          }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Additional Safety Wait
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-        shell: pwsh
-        run: |
-          Write-Host "🛡️ Additional safety wait for any remaining checks..." -ForegroundColor Cyan
-          Start-Sleep -Seconds 60  # Additional 1 minute wait
-
-      - name: Create and push production tag from latest dev version
-        if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
-        shell: pwsh
-        run: |
-          # Debug information
-          Write-Host "🔍 Debug Information:" -ForegroundColor Cyan
-          Write-Host "  - Event: ${{ github.event_name }}" -ForegroundColor White
-          Write-Host "  - PR Merged: ${{ github.event.pull_request.merged }}" -ForegroundColor White
-          Write-Host "  - Base Ref: ${{ github.event.pull_request.base.ref }}" -ForegroundColor White
-          Write-Host "  - Repository: ${{ github.repository }}" -ForegroundColor White
-          
-          # Wait for any pending CI checks before proceeding
-          Write-Host "🕐 Waiting for CI checks to complete..." -ForegroundColor Yellow
-          Start-Sleep -Seconds 60  # Wait 1 minute for CI to settle
-          
-          git fetch --tags
-          $all_tags = git tag --list
-          $dev_tags = @()
-          foreach ($tag in $all_tags) {
-            if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
-              $dev_tags += $tag
-            }
-          }
-          if ($dev_tags.Count -eq 0) {
-            $new_version = "1.0.0"
-          } else {
-            $highest_version = @{major=0; minor=0; patch=0}
-            foreach ($tag in $dev_tags) {
-              if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
-                $major = [int]$matches[1]
-                $minor = [int]$matches[2]
-                $patch = [int]$matches[3]
-                if (($major -gt $highest_version.major) -or
-                  ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or
-                  ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
-                  $highest_version.major = $major
-                  $highest_version.minor = $minor
-                  $highest_version.patch = $patch
-                }
-              }
-            }
-            $new_version = "$($highest_version.major).$($highest_version.minor).$($highest_version.patch)"
-          }
-          $tag = "v$new_version"
-          if ($all_tags -contains $tag) {
-            Write-Output "Tag $tag already exists, skipping."
-            exit 0
-          }
-          git config user.email "csvtransferapp.bot@gmail.com"
-          git config user.name "CSV Transfer App Bot"
-          git tag $tag
-          
-          # Check if we can push (status checks passed)
-          Write-Host "🔍 Checking repository status before push..." -ForegroundColor Cyan
-          
-          # Retry logic for push with exponential backoff
-          $maxRetries = 5
-          $retryCount = 0
-          $success = $false
-          
-          while (-not $success -and $retryCount -lt $maxRetries) {
-            try {
-              Write-Host "🚀 Attempting to push tag $tag (attempt $($retryCount + 1)/$maxRetries)..." -ForegroundColor Cyan
-              git push origin $tag
-              $success = $true
-              Write-Host "✅ Tag pushed successfully!" -ForegroundColor Green
-            }
-            catch {
-              $retryCount++
-              if ($retryCount -lt $maxRetries) {
-                $waitTime = [Math]::Pow(2, $retryCount) * 30  # Exponential backoff: 30s, 60s, 120s, 240s
-                Write-Host "⚠️ Push failed. Waiting $waitTime seconds before retry..." -ForegroundColor Yellow
-                Start-Sleep -Seconds $waitTime
-              } else {
-                Write-Host "❌ Failed to push tag after $maxRetries attempts" -ForegroundColor Red
-                throw $_
-              }
-            }
-          }
 
       - name: Setup .NET 9.0
         uses: actions/setup-dotnet@v5
@@ -266,9 +197,8 @@ jobs:
             deploy/linux/archives/**
 
   create-release:
-    needs: build-release
+    needs: [build-release, prepare-release]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
       
@@ -294,9 +224,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          name: "CSVTransferApp Release ${{ github.ref_name }}"
-          body: "Automated release for ${{ github.ref_name }}"
+          tag_name: ${{ needs.prepare-release.outputs.tag }}
+          name: "CSVTransferApp Release ${{ needs.prepare-release.outputs.tag }}"
+          body: "Automated release for ${{ needs.prepare-release.outputs.tag }}"
           files: |
             ./artifacts/win/deploy/windows/archives/CSVTransferApp-win-selfcontained.zip
             ./artifacts/win/deploy/windows/archives/CSVTransferApp-win-fx.zip
