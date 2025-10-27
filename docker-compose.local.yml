@@ -12,11 +12,27 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/sql:/scripts/sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U csvapp"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # One-shot initializer for PostgreSQL (runs after healthcheck OK)
+  postgres-init:
+    image: postgres:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./scripts/sql:/scripts/sql:ro
+    entrypoint: ["bash", "-c"]
+    command: >
+      psql -h postgres -U csvapp -d csvapp_db -f /scripts/sql/postgresql/create_employee_table.sql
+    restart: "no"
 
   # SQL Server
   sqlserver:
@@ -28,11 +44,28 @@ services:
       - "1433:1433"
     volumes:
       - sqlserver_data:/var/opt/mssql
+      - ./scripts/sql:/scripts/sql:ro
     healthcheck:
       test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${SQLSERVER_SA_PASSWORD}" -Q "SELECT 1" || exit 1
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # One-shot initializer for SQL Server (runs after healthcheck OK)
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      SQLSERVER_SA_PASSWORD: ${SQLSERVER_SA_PASSWORD}
+    volumes:
+      - ./scripts/sql:/scripts/sql:ro
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "$${SQLSERVER_SA_PASSWORD}" -Q "IF DB_ID('CSVTransferDB_Dev') IS NULL CREATE DATABASE [CSVTransferDB_Dev];"
+      && /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "$${SQLSERVER_SA_PASSWORD}" -d CSVTransferDB_Dev -i /scripts/sql/sqlserver/create_employee_table.sql
+    restart: "no"
 
   # Oracle XE (Express Edition)
   oracle:
@@ -43,11 +76,13 @@ services:
       - "1521:1521"
     volumes:
       - oracle_data:/opt/oracle/oradata
+      - ./scripts/sql:/scripts/sql:ro
     healthcheck:
       test: ["CMD", "sqlplus", "-L", "system/${ORACLE_PWD}@//localhost:1521/XE", "AS", "SYSDBA"]
       interval: 30s
       timeout: 10s
       retries: 3
+    # NOTE: Oracle init is manual to avoid licensing/tooling constraints. Run the script in scripts/sql/oracle inside the container when needed.
 
   # SFTP Server
   sftp:
