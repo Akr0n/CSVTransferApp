@@ -221,8 +221,8 @@ jobs:
         with:
           name: csvtransferapp-${{ matrix.artifact }}
           path: |
-            CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.*
-            CSVTransferApp-latest-${{ matrix.artifact }}.*
+            publish/CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.*
+            publish/CSVTransferApp-latest-${{ matrix.artifact }}.*
             deploy/windows/archives/**
             deploy/linux/archives/**
 
