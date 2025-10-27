@@ -192,7 +192,7 @@ jobs:
           Compress-Archive -Path * -DestinationPath $out -Force
           Pop-Location
           # Create a convenience copy with a stable name
-          Copy-Item -Path "publish/CSVTransferApp-$env:RELEASE_TAG-${{ matrix.artifact }}.zip" -Destination "publish/CSVTransferApp-latest-${{ matrix.artifact }}.zip" -Force
+          Copy-Item -Path "CSVTransferApp-$env:RELEASE_TAG-${{ matrix.artifact }}.zip" -Destination "publish/CSVTransferApp-latest-${{ matrix.artifact }}.zip" -Force
 
       - name: Create release package (Linux)
         if: ${{ matrix.runtime == 'linux-x64' }}
