@@ -60,7 +60,6 @@ jobs:
             $new_version = "1.0.0"
           } else {
             $highest_version = @{ major = 0; minor = 0; patch = 0 }
-            $highest_version = @{ major = 0; minor = 0; patch = 0 }
             foreach ($tag in $dev_tags) {
               if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
                 $major = [int]$matches[1]; $minor = [int]$matches[2]; $patch = [int]$matches[3]
