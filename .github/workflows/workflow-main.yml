@@ -54,36 +54,51 @@ jobs:
           $all_tags = git tag --list
           $dev_tags = @()
           foreach ($tag in $all_tags) { if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') { $dev_tags += $tag } }
+          Write-Host "[prepare-release] Found $($dev_tags.Count) dev tag(s): $($dev_tags -join ', ')" -ForegroundColor Cyan
           if ($dev_tags.Count -eq 0) {
+            Write-Host "[prepare-release] No -dev tags found. Defaulting to 1.0.0" -ForegroundColor Yellow
             $new_version = "1.0.0"
           } else {
-            # Find the highest version from dev tags
-            $version_numbers = @()
+            $highest_version = @{ major = 0; minor = 0; patch = 0 }
             foreach ($tag in $dev_tags) {
               if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
                 $major = [int]$matches[1]; $minor = [int]$matches[2]; $patch = [int]$matches[3]
-                if (($major -gt $highest_version.major) -or ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
-                  $highest_version.major = $major; $highest_version.minor = $minor; $highest_version.patch = $patch
+                if ( ($major -gt $highest_version['major']) -or
+                     ($major -eq $highest_version['major'] -and $minor -gt $highest_version['minor']) -or
+                     ($major -eq $highest_version['major'] -and $minor -eq $highest_version['minor'] -and $patch -gt $highest_version['patch']) ) {
+                  $highest_version['major'] = $major; $highest_version['minor'] = $minor; $highest_version['patch'] = $patch
                 }
               }
             }
-            # Sort and get the highest version
-            $highest = $version_numbers | Sort-Object Major,Minor,Patch -Descending | Select-Object -First 1
-            if ($highest) {
-              $new_version = $highest.FullVersion
-            } else {
-              $new_version = "1.0.0"
-            }
+            $new_version = "$($highest_version['major']).$($highest_version['minor']).$($highest_version['patch'])"
+            Write-Host "[prepare-release] Highest dev version resolved to: $new_version" -ForegroundColor Green
           }
           $tag = "v$new_version"
+          Write-Host "[prepare-release] Final tag candidate: $tag" -ForegroundColor Cyan
           if (-not ($all_tags -contains $tag)) {
             git config user.email "csvtransferapp.bot@gmail.com"
             git config user.name "CSV Transfer App Bot"
             git tag $tag
             $maxRetries = 5; $retryCount = 0; $success = $false
             while (-not $success -and $retryCount -lt $maxRetries) {
-              try { git push origin $tag; $success = $true } catch { $retryCount++; if ($retryCount -lt $maxRetries) { Start-Sleep -Seconds ([Math]::Pow(2, $retryCount) * 30) } else { throw $_ } }
+              try {
+                Write-Host "[prepare-release] Pushing tag $tag (attempt $($retryCount+1)/$maxRetries)" -ForegroundColor Cyan
+                git push origin $tag
+                $success = $true
+              } catch {
+                $retryCount++
+                if ($retryCount -lt $maxRetries) {
+                  $wait = [Math]::Pow(2, $retryCount) * 30
+                  Write-Host "[prepare-release] Push failed, retrying in $wait seconds..." -ForegroundColor Yellow
+                  Start-Sleep -Seconds $wait
+                } else {
+                  Write-Host "[prepare-release] Push failed after $maxRetries attempts" -ForegroundColor Red
+                  throw $_
+                }
+              }
             }
+          } else {
+            Write-Host "[prepare-release] Tag $tag already exists, skipping push" -ForegroundColor Yellow
           }
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
@@ -113,6 +128,9 @@ jobs:
           - os: windows-latest
             runtime: win-x64
             artifact: win-x64
+
+    env:
+      RELEASE_TAG: ${{ needs.prepare-release.outputs.tag }}
 
     steps:
       - name: Checkout code
@@ -184,22 +202,27 @@ jobs:
         shell: pwsh
         run: |
           Push-Location -Path "publish/${{ matrix.artifact }}"
-          $out = "../../CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.zip"
+          $out = "../../CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.zip"
           Compress-Archive -Path * -DestinationPath $out -Force
           Pop-Location
+          # Create a convenience copy with a stable name
+          Copy-Item -Path "CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.zip" -Destination "publish/CSVTransferApp-latest-${{ matrix.artifact }}.zip" -Force
 
       - name: Create release package (Linux)
         if: ${{ matrix.runtime == 'linux-x64' }}
         run: |
           mkdir -p ./publish/${{ matrix.artifact }}
-          tar -czf CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.tar.gz -C publish/${{ matrix.artifact }} .
+          tar -czf CSVTransferApp-${RELEASE_TAG}-${{ matrix.artifact }}.tar.gz -C publish/${{ matrix.artifact }} .
+          # Create a convenience copy with a stable name
+          cp "CSVTransferApp-${RELEASE_TAG}-${{ matrix.artifact }}.tar.gz" "CSVTransferApp-latest-${{ matrix.artifact }}.tar.gz"
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v5
         with:
           name: csvtransferapp-${{ matrix.artifact }}
           path: |
-            CSVTransferApp-${{ github.ref_name }}-${{ matrix.artifact }}.*
+            publish/CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.*
+            publish/CSVTransferApp-latest-${{ matrix.artifact }}.*
             deploy/windows/archives/**
             deploy/linux/archives/**
 
@@ -225,6 +248,42 @@ jobs:
           name: csvtransferapp-linux-x64
           path: ./artifacts/linux
 
+      - name: Diagnostic - list release files and sizes
+        shell: bash
+        run: |
+          echo "[create-release] Using tag: ${TAG}"
+          echo "[create-release] Listing downloaded artifact directories:"
+          find ./artifacts -maxdepth 3 -type d -print | sed 's/^/[dir] /'
+          echo "[create-release] Listing files (path and size):"
+          find ./artifacts -type f -printf "%p %k KB\n" | sed 's/^/[file] /'
+          echo "[create-release] Validating expected files exist:"
+          missing=0
+          files=(
+            "./artifacts/win/deploy/windows/archives/CSVTransferApp-win-selfcontained.zip"
+            "./artifacts/win/deploy/windows/archives/CSVTransferApp-win-fx.zip"
+            "./artifacts/linux/deploy/linux/archives/CSVTransferApp-linux-selfcontained.tar.gz"
+            "./artifacts/linux/deploy/linux/archives/CSVTransferApp-linux-fx.tar.gz"
+            "./artifacts/win/CSVTransferApp-${TAG}-win-x64.zip"
+            "./artifacts/win/CSVTransferApp-latest-win-x64.zip"
+            "./artifacts/linux/CSVTransferApp-${TAG}-linux-x64.tar.gz"
+            "./artifacts/linux/CSVTransferApp-latest-linux-x64.tar.gz"
+          )
+          for f in "${files[@]}"; do
+            if [ -f "$f" ]; then
+              sz=$(stat -c%s "$f" 2>/dev/null || echo 0)
+              echo "[create-release] OK: $f (${sz} bytes)"
+            else
+              echo "[create-release] MISSING: $f" >&2
+              missing=$((missing+1))
+            fi
+          done
+          if [ "$missing" -gt 0 ]; then
+            echo "[create-release] ERROR: $missing expected file(s) missing. Failing job." >&2
+            exit 1
+          fi
+        env:
+          TAG: ${{ needs.prepare-release.outputs.tag }}
+
       - name: Create and push release
         id: create_release
         uses: softprops/action-gh-release@v2
@@ -234,8 +293,13 @@ jobs:
           tag_name: ${{ needs.prepare-release.outputs.tag }}
           name: "CSVTransferApp Release ${{ needs.prepare-release.outputs.tag }}"
           body: "Automated release for ${{ needs.prepare-release.outputs.tag }}"
+          fail_on_unmatched_files: true
           files: |
             ./artifacts/win/deploy/windows/archives/CSVTransferApp-win-selfcontained.zip
             ./artifacts/win/deploy/windows/archives/CSVTransferApp-win-fx.zip
             ./artifacts/linux/deploy/linux/archives/CSVTransferApp-linux-selfcontained.tar.gz
             ./artifacts/linux/deploy/linux/archives/CSVTransferApp-linux-fx.tar.gz
+            ./artifacts/win/CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-win-x64.zip
+            ./artifacts/win/CSVTransferApp-latest-win-x64.zip
+            ./artifacts/linux/CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-linux-x64.tar.gz
+            ./artifacts/linux/CSVTransferApp-latest-linux-x64.tar.gz
