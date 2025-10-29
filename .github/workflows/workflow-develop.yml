@@ -182,26 +182,26 @@ jobs:
             Write-Output "⚠️ No existing dev tags found, starting from 1.0.0"
             $new_version = "1.0.0"
           } else {
-            # Trova la versione più alta
-            $highest_version = @{major=0; minor=0; patch=0}
+            # Trova la versione più alta usando indexer syntax per hashtable
+            $highest_version = @{ major = 0; minor = 0; patch = 0 }
             foreach ($tag in $dev_tags) {
               if ($tag -match '^v(\d+)\.(\d+)\.(\d+)-dev') {
                 $major = [int]$matches[1]
                 $minor = [int]$matches[2]
                 $patch = [int]$matches[3]
-                if (($major -gt $highest_version.major) -or
-                  ($major -eq $highest_version.major -and $minor -gt $highest_version.minor) -or
-                  ($major -eq $highest_version.major -and $minor -eq $highest_version.minor -and $patch -gt $highest_version.patch)) {
-                  $highest_version.major = $major
-                  $highest_version.minor = $minor
-                  $highest_version.patch = $patch
+                if (($major -gt $highest_version['major']) -or
+                  ($major -eq $highest_version['major'] -and $minor -gt $highest_version['minor']) -or
+                  ($major -eq $highest_version['major'] -and $minor -eq $highest_version['minor'] -and $patch -gt $highest_version['patch'])) {
+                  $highest_version['major'] = $major
+                  $highest_version['minor'] = $minor
+                  $highest_version['patch'] = $patch
                 }
               }
             }
             # Incrementa la patch version
-            $new_patch = $highest_version.patch + 1
-            $new_version = "$($highest_version.major).$($highest_version.minor).$new_patch"
-            Write-Output "✅ Incremented from v$($highest_version.major).$($highest_version.minor).$($highest_version.patch)-dev to v$new_version-dev"
+            $new_patch = $highest_version['patch'] + 1
+            $new_version = "$($highest_version['major']).$($highest_version['minor']).$new_patch"
+            Write-Output "✅ Incremented from v$($highest_version['major']).$($highest_version['minor']).$($highest_version['patch'])-dev to v$new_version-dev"
           }
           # Aggiungi data e short SHA per unicità
           $date = Get-Date -Format 'yyyyMMdd'
@@ -401,8 +401,39 @@ jobs:
         run: |
           git config --global user.email "csvtransferapp.bot@gmail.com"
           git config --global user.name "CSV Transfer App Bot"
-          git tag ${{ env.VERSION_TAG }}
-          git push origin ${{ env.VERSION_TAG }}
+          
+          # Check if tag already exists
+          $existingTag = git tag --list ${{ env.VERSION_TAG }}
+          if ($existingTag) {
+            Write-Output "⚠️ Tag ${{ env.VERSION_TAG }} already exists, skipping tag creation"
+          } else {
+            Write-Output "✅ Creating new tag ${{ env.VERSION_TAG }}"
+            git tag ${{ env.VERSION_TAG }}
+            
+            # Push with retry logic
+            $maxRetries = 3
+            $retryCount = 0
+            $success = $false
+            
+            while (-not $success -and $retryCount -lt $maxRetries) {
+              try {
+                Write-Output "📤 Pushing tag (attempt $($retryCount + 1)/$maxRetries)..."
+                git push origin ${{ env.VERSION_TAG }}
+                $success = $true
+                Write-Output "✅ Tag pushed successfully!"
+              } catch {
+                $retryCount++
+                if ($retryCount -lt $maxRetries) {
+                  $waitTime = [Math]::Pow(2, $retryCount) * 5
+                  Write-Output "⚠️ Push failed, retrying in $waitTime seconds..."
+                  Start-Sleep -Seconds $waitTime
+                } else {
+                  Write-Output "❌ Failed to push tag after $maxRetries attempts"
+                  throw $_
+                }
+              }
+            }
+          }
 
       # ===== GENERATE CHANGELOG =====
       - name: Generate changelog

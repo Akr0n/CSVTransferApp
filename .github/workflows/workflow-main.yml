@@ -70,6 +70,13 @@ jobs:
                 }
               }
             }
+            # Check if production tag already exists, if so increment patch
+            $base_version = "$($highest_version['major']).$($highest_version['minor']).$($highest_version['patch'])"
+            $prod_tag = "v$base_version"
+            if ($all_tags -contains $prod_tag) {
+              Write-Host "[prepare-release] Production tag $prod_tag already exists, incrementing patch version" -ForegroundColor Yellow
+              $highest_version['patch'] = $highest_version['patch'] + 1
+            }
             $new_version = "$($highest_version['major']).$($highest_version['minor']).$($highest_version['patch'])"
             Write-Host "[prepare-release] Highest dev version resolved to: $new_version" -ForegroundColor Green
           }
