@@ -47,8 +47,6 @@ jobs:
     steps:
       # ===== SETUP =====
 
-      
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
@@ -117,6 +115,9 @@ jobs:
               
               # Esegui test con coverage - specificando la solution per includere tutti i progetti
               Write-Output "Running tests with coverage collection..."
+            # Ensure dotnet global tools are on PATH (Windows runners)
+            $toolsPath = Join-Path $env:USERPROFILE ".dotnet\tools"
+            if (Test-Path $toolsPath) { $env:PATH = "$toolsPath;$env:PATH" }
               dotnet-coverage collect "dotnet test CSVTransferApp.sln --configuration Release --no-build --verbosity normal --logger trx --results-directory TestResults" -f xml -o "coverage.opencover.xml"
               
               # Verifica che il file di coverage sia stato creato
@@ -183,12 +184,13 @@ jobs:
 
       # ===== UPLOAD ARTIFACTS =====
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: test-results-${{ runner.os }}
           path: |
             TestResults/*.trx
+          if-no-files-found: warn
           retention-days: 30
 
       # ===== BUILD SUMMARY =====

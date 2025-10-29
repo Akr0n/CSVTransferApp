@@ -14,7 +14,7 @@
         "Host": "localhost",
         "Port": 2222,
         "Username": "csvapp",
-  "Password": "${SFTP_PASSWORD}",
+        "Password": "${SFTP_PASSWORD}",
         "RemotePath": "/upload",
         "ConnectionTimeout": 10,
         "IsEnabled": true,
