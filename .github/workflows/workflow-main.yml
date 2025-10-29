@@ -9,7 +9,6 @@ on:
     paths-ignore:
       - 'docs/**'
       - '*.md'
-      - 'README.md'
       - 'LICENSE'
       - '.gitignore'
       - '.editorconfig'
