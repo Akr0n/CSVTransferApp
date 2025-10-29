@@ -81,7 +81,21 @@ jobs:
             git tag $tag
             $maxRetries = 5; $retryCount = 0; $success = $false
             while (-not $success -and $retryCount -lt $maxRetries) {
-              try { Write-Host "[prepare-release] Pushing tag $tag (attempt $($retryCount+1)/$maxRetries)" -ForegroundColor Cyan; git push origin $tag; $success = $true } catch { $retryCount++; if ($retryCount -lt $maxRetries) { $wait = [Math]::Pow(2, $retryCount) * 30; Write-Host "[prepare-release] Push failed, retrying in $wait seconds..." -ForegroundColor Yellow; Start-Sleep -Seconds $wait } else { Write-Host "[prepare-release] Push failed after $maxRetries attempts" -ForegroundColor Red; throw $_ } }
+              try {
+                Write-Host "[prepare-release] Pushing tag $tag (attempt $($retryCount+1)/$maxRetries)" -ForegroundColor Cyan
+                git push origin $tag
+                $success = $true
+              } catch {
+                $retryCount++
+                if ($retryCount -lt $maxRetries) {
+                  $wait = [Math]::Pow(2, $retryCount) * 30
+                  Write-Host "[prepare-release] Push failed, retrying in $wait seconds..." -ForegroundColor Yellow
+                  Start-Sleep -Seconds $wait
+                } else {
+                  Write-Host "[prepare-release] Push failed after $maxRetries attempts" -ForegroundColor Red
+                  throw $_
+                }
+              }
             }
           } else {
             Write-Host "[prepare-release] Tag $tag already exists, skipping push" -ForegroundColor Yellow
@@ -188,11 +202,11 @@ jobs:
         shell: pwsh
         run: |
           Push-Location -Path "publish/${{ matrix.artifact }}"
-          $out = "../../CSVTransferApp-$env:RELEASE_TAG-${{ matrix.artifact }}.zip"
+          $out = "../../CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.zip"
           Compress-Archive -Path * -DestinationPath $out -Force
           Pop-Location
           # Create a convenience copy with a stable name
-          Copy-Item -Path "publish/CSVTransferApp-$env:RELEASE_TAG-${{ matrix.artifact }}.zip" -Destination "publish/CSVTransferApp-latest-${{ matrix.artifact }}.zip" -Force
+          Copy-Item -Path "CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.zip" -Destination "publish/CSVTransferApp-latest-${{ matrix.artifact }}.zip" -Force
 
       - name: Create release package (Linux)
         if: ${{ matrix.runtime == 'linux-x64' }}
@@ -203,12 +217,12 @@ jobs:
           cp "CSVTransferApp-${RELEASE_TAG}-${{ matrix.artifact }}.tar.gz" "CSVTransferApp-latest-${{ matrix.artifact }}.tar.gz"
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: csvtransferapp-${{ matrix.artifact }}
           path: |
-            CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.*
-            CSVTransferApp-latest-${{ matrix.artifact }}.*
+            publish/CSVTransferApp-${{ needs.prepare-release.outputs.tag }}-${{ matrix.artifact }}.*
+            publish/CSVTransferApp-latest-${{ matrix.artifact }}.*
             deploy/windows/archives/**
             deploy/linux/archives/**
 
@@ -223,13 +237,13 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: csvtransferapp-win-x64
           path: ./artifacts/win
 
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: csvtransferapp-linux-x64
           path: ./artifacts/linux
