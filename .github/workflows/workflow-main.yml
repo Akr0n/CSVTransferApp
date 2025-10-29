@@ -6,19 +6,13 @@ on:
       - closed
     branches:
       - main
-    paths:
-        - '*.cs'
-        - '*.csproj'
-        - '*.ps1'
-        - '*.sln'
-        - 'src/**'
-        - 'tests/**'
-        - 'config/**'
-        - 'deploy/**'
-        - 'publish/**'
-        - 'scripts/**'
-        - '*/docker-compose.local.yml'
-        - '*/docker-compose.yml'
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - 'README.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.editorconfig'
   push:
     tags:
       - 'v*'
