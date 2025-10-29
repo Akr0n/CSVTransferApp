@@ -188,7 +188,7 @@ jobs:
         if: ${{ matrix.runtime == 'win-x64' }}
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Path "./publish" -Force
+          New-Item -ItemType Directory -Path "./publish/${{ matrix.artifact }}" -Force
           Push-Location -Path "publish/${{ matrix.artifact }}"
           $out = "../CSVTransferApp-$env:RELEASE_TAG-${{ matrix.artifact }}.zip"
           Compress-Archive -Path * -DestinationPath $out -Force
