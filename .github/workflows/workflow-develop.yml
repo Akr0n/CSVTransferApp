@@ -438,7 +438,7 @@ jobs:
       # ===== GENERATE CHANGELOG =====
       - name: Generate changelog
         id: changelog
-        uses: mikepenz/release-changelog-builder-action@v5
+        uses: mikepenz/release-changelog-builder-action@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           toTag: ${{ env.VERSION_TAG }}
