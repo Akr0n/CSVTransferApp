@@ -219,7 +219,7 @@ jobs:
           cp "CSVTransferApp-${RELEASE_TAG}-${{ matrix.artifact }}.tar.gz" "CSVTransferApp-latest-${{ matrix.artifact }}.tar.gz"
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: csvtransferapp-${{ matrix.artifact }}
           path: |
